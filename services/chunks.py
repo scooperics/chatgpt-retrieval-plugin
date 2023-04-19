@@ -168,7 +168,13 @@ def get_document_chunks(
 
     # Loop over each document and create chunks
     for doc in documents:
-        doc_chunks, doc_id = create_document_chunks(doc, chunk_token_size)
+
+        # CUSTOMIZATION: if the file_type is a '*_table', don't chunk - parse the entire table together
+        # There is no point in chunking tabular data as all meaning is lost.
+        if doc.metadata['file_type'].endsWith('-table'):
+            doc_chunks, doc_id = create_document_chunks(doc, 10000)
+        else:
+            doc_chunks, doc_id = create_document_chunks(doc, chunk_token_size)
 
         # Append the chunks for this document to the list of all chunks
         all_chunks.extend(doc_chunks)

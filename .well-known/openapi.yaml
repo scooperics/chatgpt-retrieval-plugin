@@ -1,10 +1,10 @@
 openapi: 3.0.2
 info:
-  title: Retrieval Plugin API
-  description: A retrieval API for querying and filtering documents based on natural language queries and metadata
+  title: AITickerChat Retrieval Plugin API
+  description: A retrieval API for querying and filtering SEC filing documents and earnings call transcripts based on natural language queries and metadata
   version: 1.0.0
   servers:
-    - url: https://your-app-url.com
+    - url: "https://stock-advisor.com"
 paths:
   /query:
     post:
@@ -55,6 +55,18 @@ components:
         document_id:
           title: Document Id
           type: string
+        file_type:
+          title: File Type
+          type: "#/components/schemas/FileType"
+        symbol:
+          title: Stock Symbol
+          type: string
+        cik:
+          title: Stock CIK
+          type: string
+        description:
+          title: Description
+          type: string
     DocumentChunkWithScore:
       title: DocumentChunkWithScore
       required:
@@ -99,6 +111,15 @@ components:
           type: string
         end_date:
           title: End Date
+          type: string
+        file_type:
+          title: File Type
+          type: "#/components/schemas/FileType"
+        symbol:
+          title: Stock Symbol
+          type: string
+        cik:
+          title: Stock CIK
           type: string
     HTTPValidationError:
       title: HTTPValidationError
@@ -169,6 +190,21 @@ components:
         - chat
       type: string
       description: An enumeration.
+    FileType:
+      title: File Type
+      enum:
+        - 8-K
+        - 10-K
+        - 1Q
+        - 2Q
+        - 3Q
+        - DEFA14A
+        - DEF 14A
+        - S-1
+        - S-3
+        - earnings_transcript
+      type: string
+      description: SEC type of filing.
     ValidationError:
       title: ValidationError
       required:

@@ -3,6 +3,8 @@ FROM python:3.10 as requirements-stage
 
 WORKDIR /tmp
 
+# Update pip
+RUN pip install --upgrade pip
 RUN pip install poetry
 
 COPY ./pyproject.toml ./poetry.lock* /tmp/
@@ -11,6 +13,16 @@ COPY ./pyproject.toml ./poetry.lock* /tmp/
 RUN poetry export -f requirements.txt --output requirements.txt --without-hashes
 
 FROM python:3.10
+
+# Update package index and install build-essential
+RUN apt-get update && apt-get install -y build-essential
+
+# Install Rust
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# Update pip
+RUN pip install --upgrade pip
 
 WORKDIR /code
 

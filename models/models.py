@@ -15,6 +15,10 @@ class DocumentMetadata(BaseModel):
     url: Optional[str] = None
     created_at: Optional[str] = None
     author: Optional[str] = None
+    file_type: Optional[str] = None
+    symbol: Optional[str] = None
+    cik: Optional[str] = None
+    description: Optional[str] = None
 
 
 class DocumentChunkMetadata(DocumentMetadata):
@@ -49,6 +53,9 @@ class DocumentMetadataFilter(BaseModel):
     author: Optional[str] = None
     start_date: Optional[str] = None  # any date string format
     end_date: Optional[str] = None  # any date string format
+    symbol: Optional[str] = None
+    cik: Optional[str] = None
+    file_type: Optional[str] = None
 
 
 class Query(BaseModel):
