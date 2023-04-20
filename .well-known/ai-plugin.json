@@ -1,9 +1,9 @@
 {
   "schema_version": "v1",
   "name_for_model": "aitickerchat_retrieval",
-  "name_for_human": "AITickerChat SEC Filing Plugin",
-  "description_for_model": "Plugin for searching through the SEC filings and earnings call transcripts to find answers to stock market questions and retrieve relevant information. Use it whenever a user asks for stock information that could be found in any SEC document filing or earnings call transcripts.",
-  "description_for_human": "Search through SEC filings and earnings call transcripts.",
+  "name_for_human": "AITickerChat",
+  "description_for_model": "Plugin for searching through SEC and CSA filings as well as earnings call transcripts to find answers to stock market questions and retrieve relevant information. Use it whenever a user asks for stock information that could be found in any SEC or CSA document filing or earnings call transcripts.",
+  "description_for_human": "Retrieve insights from SEC and CSA filings as well as earnings call transcripts.",
   "auth": {
     "type": "user_http",
     "authorization_type": "bearer"
