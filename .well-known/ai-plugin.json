@@ -1,6 +1,6 @@
 {
   "schema_version": "v1",
-  "name_for_model": "aitickerchat_retrieval",
+  "name_for_model": "document_retrieval",
   "name_for_human": "AITickerChat",
   "description_for_model": "Plugin for searching through SEC and CSA filings as well as earnings call transcripts to find answers to stock market questions and retrieve relevant information. Use it whenever a user asks for stock information that could be found in any SEC or CSA document filing or earnings call transcripts.",
   "description_for_human": "Retrieve insights from SEC and CSA filings as well as earnings call transcripts.",
