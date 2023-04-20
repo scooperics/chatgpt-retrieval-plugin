@@ -82,6 +82,10 @@ async def upsert(
         return UpsertResponse(ids=ids)
     except Exception as e:
         print("Error:", e)
+        print("DOCUMENTS:")
+        print(request.documents)
+        print("IDs")
+        print(ids)
         raise HTTPException(status_code=500, detail="Internal Service Error")
 
 

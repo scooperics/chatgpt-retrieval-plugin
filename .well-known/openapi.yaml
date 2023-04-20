@@ -55,9 +55,6 @@ components:
         document_id:
           title: Document Id
           type: string
-        file_type:
-          title: File Type
-          type: "#/components/schemas/FileType"
         symbol:
           title: Stock Symbol
           type: string
@@ -112,9 +109,6 @@ components:
         end_date:
           title: End Date
           type: string
-        file_type:
-          title: File Type
-          type: "#/components/schemas/FileType"
         symbol:
           title: Stock Symbol
           type: string
@@ -185,26 +179,22 @@ components:
     Source:
       title: Source
       enum:
-        - email
-        - file
-        - chat
-      type: string
-      description: An enumeration.
-    FileType:
-      title: File Type
-      enum:
         - 8-K
         - 10-K
+        - 10-K-table
         - 1Q
+        - 1Q-table
         - 2Q
+        - 2Q-table
         - 3Q
+        - 3Q-table
         - DEFA14A
         - DEF 14A
         - S-1
         - S-3
         - earnings_transcript
       type: string
-      description: SEC type of filing.
+      description: An enumeration of type of source document.
     ValidationError:
       title: ValidationError
       required:

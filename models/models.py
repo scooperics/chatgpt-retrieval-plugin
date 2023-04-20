@@ -4,10 +4,20 @@ from enum import Enum
 
 
 class Source(str, Enum):
-    email = "email"
-    file = "file"
-    chat = "chat"
-
+    _8_K = "8-K"
+    _10_K = "10-K"
+    _10_K_table = "10-K-table"
+    _1Q = "1Q"
+    _1Q_table = "1Q-table"
+    _2Q = "2Q"
+    _2Q_table = "2Q-table"
+    _3Q = "3Q"
+    _3Q_table = "3Q-table"
+    DEFA14A = "DEFA14A"
+    DEF_14A = "DEF 14A"
+    S_1 = "S-1"
+    S_3 = "S-3"
+    earnings_transcript = "earnings_transcript"
 
 class DocumentMetadata(BaseModel):
     source: Optional[Source] = None
@@ -15,7 +25,6 @@ class DocumentMetadata(BaseModel):
     url: Optional[str] = None
     created_at: Optional[str] = None
     author: Optional[str] = None
-    file_type: Optional[str] = None
     symbol: Optional[str] = None
     cik: Optional[str] = None
     description: Optional[str] = None
@@ -55,7 +64,6 @@ class DocumentMetadataFilter(BaseModel):
     end_date: Optional[str] = None  # any date string format
     symbol: Optional[str] = None
     cik: Optional[str] = None
-    file_type: Optional[str] = None
 
 
 class Query(BaseModel):
