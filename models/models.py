@@ -4,30 +4,35 @@ from enum import Enum
 
 
 class Source(str, Enum):
+    sec = "SEC"
+    csa = "CSA"
+    earnings_call_transcripts = "Earnings Call Transcripts"
+
+class FormType(str, Enum):
     _8_K = "8-K"
     _10_K = "10-K"
-    _10_K_table = "10-K-table"
-    _1Q = "1Q"
-    _1Q_table = "1Q-table"
-    _2Q = "2Q"
-    _2Q_table = "2Q-table"
-    _3Q = "3Q"
-    _3Q_table = "3Q-table"
+    _10_K_table = "10-K"
+    _10_Q = "10-Q"
     DEFA14A = "DEFA14A"
     DEF_14A = "DEF 14A"
     S_1 = "S-1"
     S_3 = "S-3"
     earnings_transcript = "earnings_transcript"
 
+
 class DocumentMetadata(BaseModel):
     source: Optional[Source] = None
-    source_id: Optional[str] = None
+    filename: Optional[str] = None
     url: Optional[str] = None
-    created_at: Optional[str] = None
-    author: Optional[str] = None
+    form_type: Optional[FormType] = None
+    document_section: Optional[str] = None
+    published_date: Optional[str] = None
+    company_name: Optional[str] = None
+    document_id: Optional[str] = None
     symbol: Optional[str] = None
     cik: Optional[str] = None
-    description: Optional[str] = None
+    fiscal_quarter: Optional[int] = None
+    fiscal_year: Optional[int] = None
 
 
 class DocumentChunkMetadata(DocumentMetadata):
@@ -58,12 +63,15 @@ class DocumentWithChunks(Document):
 class DocumentMetadataFilter(BaseModel):
     document_id: Optional[str] = None
     source: Optional[Source] = None
-    source_id: Optional[str] = None
-    author: Optional[str] = None
+    form_type: Optional[FormType] = None
+    company_name: Optional[str] = None
+    document_section: Optional[str] = None
     start_date: Optional[str] = None  # any date string format
     end_date: Optional[str] = None  # any date string format
     symbol: Optional[str] = None
     cik: Optional[str] = None
+    fiscal_quarter: Optional[int] = None
+    fiscal_year: Optional[int] = None
 
 
 class Query(BaseModel):

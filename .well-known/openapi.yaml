@@ -9,7 +9,7 @@ paths:
   /query:
     post:
       summary: Query
-      description: Accepts search query objects array each with query and optional filter. Break down complex questions into sub-questions. Refine results by criteria, e.g. time / source, don't do this often. Split queries if ResponseTooLargeError occurs.
+      description: Plugin for searching through SEC and CSA filings and Earnings Call Transcripts to find answers to questions and retrieve relevant information about any stock over 50 Million in annual revenue.
       operationId: query_query_post
       requestBody:
         content:
@@ -40,17 +40,22 @@ components:
       properties:
         source:
           $ref: "#/components/schemas/Source"
-        source_id:
-          title: Source Id
+        filename:
+          title: Filename
           type: string
         url:
           title: Url
           type: string
-        created_at:
-          title: Created At
+        form_type:
+          $ref: "#/components/schemas/FormType"
+        document_section:
+          title: Document Section
           type: string
-        author:
-          title: Author
+        published_date:
+          title: Date
+          type: string
+        company_name:
+          title: Company Name
           type: string
         document_id:
           title: Document Id
@@ -61,9 +66,12 @@ components:
         cik:
           title: Stock CIK
           type: string
-        description:
-          title: Description
-          type: string
+        fiscal_quarter:
+          title: Fiscal Quarter
+          type: integer
+        fiscal_year:
+          title: Fiscal Year
+          type: integer
     DocumentChunkWithScore:
       title: DocumentChunkWithScore
       required:
@@ -97,11 +105,13 @@ components:
           type: string
         source:
           $ref: "#/components/schemas/Source"
-        source_id:
-          title: Source Id
+        form_type:
+          $ref: "#/components/schemas/FormType"
+        company_name:
+          title: Company Name
           type: string
-        author:
-          title: Author
+        document_section:
+          title: Document Section
           type: string
         start_date:
           title: Start Date
@@ -115,6 +125,12 @@ components:
         cik:
           title: Stock CIK
           type: string
+        fiscal_quarter:
+          title: Fiscal Quarter
+          type: integer
+        fiscal_year:
+          title: Fiscal Year
+          type: integer
     HTTPValidationError:
       title: HTTPValidationError
       type: object
@@ -179,22 +195,24 @@ components:
     Source:
       title: Source
       enum:
+        - SEC
+        - CSA
+        - Earnings Call Transcripts
+      type: string
+      description: An enumeration.
+    FormType:
+      title: From Type
+      enum:
         - 8-K
         - 10-K
-        - 10-K-table
-        - 1Q
-        - 1Q-table
-        - 2Q
-        - 2Q-table
-        - 3Q
-        - 3Q-table
+        - 10-Q
         - DEFA14A
         - DEF 14A
         - S-1
         - S-3
         - earnings_transcript
       type: string
-      description: An enumeration of type of source document.
+      description: An enumeration.
     ValidationError:
       title: ValidationError
       required:
