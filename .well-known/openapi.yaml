@@ -51,9 +51,6 @@ components:
         document_section:
           title: Document Section
           type: string
-        published_date:
-          title: Date
-          type: string
         company_name:
           title: Company Name
           type: string
@@ -113,12 +110,6 @@ components:
         document_section:
           title: Document Section
           type: string
-        start_date:
-          title: Start Date
-          type: string
-        end_date:
-          title: End Date
-          type: string
         symbol:
           title: Stock Symbol
           type: string
@@ -154,7 +145,7 @@ components:
         top_k:
           title: Top K
           type: integer
-          default: 3
+          default: 10
     QueryRequest:
       title: QueryRequest
       required:

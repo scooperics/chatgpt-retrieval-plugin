@@ -26,7 +26,6 @@ class DocumentMetadata(BaseModel):
     url: Optional[str] = None
     form_type: Optional[FormType] = None
     document_section: Optional[str] = None
-    published_date: Optional[str] = None
     company_name: Optional[str] = None
     document_id: Optional[str] = None
     symbol: Optional[str] = None
@@ -66,8 +65,8 @@ class DocumentMetadataFilter(BaseModel):
     form_type: Optional[FormType] = None
     company_name: Optional[str] = None
     document_section: Optional[str] = None
-    start_date: Optional[str] = None  # any date string format
-    end_date: Optional[str] = None  # any date string format
+    # start_date: Optional[str] = None  # any date string format
+    # end_date: Optional[str] = None  # any date string format
     symbol: Optional[str] = None
     cik: Optional[str] = None
     fiscal_quarter: Optional[int] = None
