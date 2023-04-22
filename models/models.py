@@ -4,9 +4,9 @@ from enum import Enum
 
 
 class Source(str, Enum):
-    sec = "SEC"
-    csa = "CSA"
-    earnings_call_transcripts = "Earnings Call Transcripts"
+    SEC = "SEC"
+    CSA = "CSA"
+    Earnings_Call_Transcripts = "Earnings Call Transcripts"
 
 class FormType(str, Enum):
     _8_K = "8-K"
@@ -60,7 +60,7 @@ class DocumentWithChunks(Document):
 
 
 class DocumentMetadataFilter(BaseModel):
-    document_id: Optional[str] = None
+    document_ids: Optional[List[str]] = None
     source: Optional[Source] = None
     form_type: Optional[FormType] = None
     company_name: Optional[str] = None

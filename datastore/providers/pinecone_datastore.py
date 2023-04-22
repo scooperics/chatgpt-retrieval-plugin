@@ -118,6 +118,8 @@ class PineconeDataStore(DataStore):
         # Define a helper coroutine that performs a single query and returns a QueryResult
         async def _single_query(query: QueryWithEmbedding) -> QueryResult:
             print(f"Query: {query.query}")
+            print(f"Filter: {query.filter}")
+            print(f"TopK: {query.top_k}")
 
             # Convert the metadata filter object to a dict with pinecone filter expressions
             pinecone_filter = self._get_pinecone_filter(query.filter)
