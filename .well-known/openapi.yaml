@@ -51,6 +51,8 @@ components:
         document_section:
           title: Document Section
           type: string
+        # published_date:
+        #   type: string
         company_name:
           title: Company Name
           type: string

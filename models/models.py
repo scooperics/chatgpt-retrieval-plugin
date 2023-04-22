@@ -23,6 +23,7 @@ class FormType(str, Enum):
 class DocumentMetadata(BaseModel):
     source: Optional[Source] = None
     filename: Optional[str] = None
+    # published_date: Optional[str] = None
     url: Optional[str] = None
     form_type: Optional[FormType] = None
     document_section: Optional[str] = None
@@ -65,8 +66,8 @@ class DocumentMetadataFilter(BaseModel):
     form_type: Optional[FormType] = None
     company_name: Optional[str] = None
     document_section: Optional[str] = None
-    # start_date: Optional[str] = None  # any date string format
-    # end_date: Optional[str] = None  # any date string format
+    # start_date: Optional[str] = None
+    # end_date: Optional[str] = None
     symbol: Optional[str] = None
     cik: Optional[str] = None
     fiscal_quarter: Optional[int] = None

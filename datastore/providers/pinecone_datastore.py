@@ -123,6 +123,7 @@ class PineconeDataStore(DataStore):
 
             # Convert the metadata filter object to a dict with pinecone filter expressions
             pinecone_filter = self._get_pinecone_filter(query.filter)
+            print(f"Pinecone Filter: {pinecone_filter}")
 
             try:
                 # Query the index with the query embedding, filter, and top_k
@@ -134,6 +135,7 @@ class PineconeDataStore(DataStore):
                     include_metadata=True,
                 )
             except Exception as e:
+                print("QUERY ERROR")
                 print(f"Error querying index: {e}")
                 raise e
 
@@ -233,11 +235,15 @@ class PineconeDataStore(DataStore):
         for field, value in filter.dict().items():
             if value is not None:
                 if field == "start_date":
-                    pinecone_filter["date"] = pinecone_filter.get("date", {})
-                    pinecone_filter["date"]["$gte"] = to_unix_timestamp(value)
+                    pinecone_filter["published_date"] = pinecone_filter.get("published_date", {})
+                    pinecone_filter["published_date"]["$gte"] = to_unix_timestamp(value)
                 elif field == "end_date":
-                    pinecone_filter["date"] = pinecone_filter.get("date", {})
-                    pinecone_filter["date"]["$lte"] = to_unix_timestamp(value)
+                    pinecone_filter["published_date"] = pinecone_filter.get("published_date", {})
+                    pinecone_filter["published_date"]["$lte"] = to_unix_timestamp(value)
+                elif field == "document_ids":
+                    print(f"Filtering documents with ids {value}")
+                    pinecone_filter["document_id"] = pinecone_filter.get("document_id", {})
+                    pinecone_filter["document_id"]["$in"] = value
                 else:
                     pinecone_filter[field] = value
 
