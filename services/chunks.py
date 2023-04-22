@@ -171,10 +171,10 @@ def get_document_chunks(
 
         # CUSTOMIZATION: if the file_type is a '*-table', don't chunk - parse the entire table together
         # There is no point in chunking tabular data as all meaning is lost.
-        # if doc.metadata.document_section == ('Financial Statements'):
-        #     doc_chunks, doc_id = create_document_chunks(doc, 10000)
-        # else:
-        doc_chunks, doc_id = create_document_chunks(doc, chunk_token_size)
+        if doc.metadata.source.endswith('-table'):
+            doc_chunks, doc_id = create_document_chunks(doc, 10000)
+        else:
+            doc_chunks, doc_id = create_document_chunks(doc, chunk_token_size)
 
         # Append the chunks for this document to the list of all chunks
         all_chunks.extend(doc_chunks)

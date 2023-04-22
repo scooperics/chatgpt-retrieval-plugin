@@ -11,8 +11,9 @@ class Source(str, Enum):
 class FormType(str, Enum):
     _8_K = "8-K"
     _10_K = "10-K"
-    _10_K_table = "10-K"
+    _10_K_table = "10-K-table"
     _10_Q = "10-Q"
+    _10_Q_table = "10-Q-table"
     DEFA14A = "DEFA14A"
     DEF_14A = "DEF 14A"
     S_1 = "S-1"
@@ -23,7 +24,7 @@ class FormType(str, Enum):
 class DocumentMetadata(BaseModel):
     source: Optional[Source] = None
     filename: Optional[str] = None
-    # published_date: Optional[str] = None
+    published_date: Optional[str] = None
     url: Optional[str] = None
     form_type: Optional[FormType] = None
     document_section: Optional[str] = None

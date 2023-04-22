@@ -51,8 +51,9 @@ components:
         document_section:
           title: Document Section
           type: string
-        # published_date:
-        #   type: string
+        published_date:
+          title: Published Date
+          type: string
         company_name:
           title: Company Name
           type: string
@@ -200,7 +201,9 @@ components:
       enum:
         - 8-K
         - 10-K
+        - 10-K-table
         - 10-Q
+        - 10-Q-table
         - DEFA14A
         - DEF 14A
         - S-1
