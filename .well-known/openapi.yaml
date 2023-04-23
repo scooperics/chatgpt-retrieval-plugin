@@ -9,7 +9,7 @@ paths:
   /query:
     post:
       summary: Query
-      description: Accepts search query objects array each with query and optional filter. Break down complex questions into sub-questions. Refine results by criteria, symbol, form_type, fiscal year and fiscal quarter.  Split queries if ResponseTooLargeError occurs.
+      description: Accepts search query objects array each with query and optional filter. Break down complex questions into sub-questions. Refine results by criteria; such as symbol, form_type, fiscal_year and fiscal_quarter.  Split queries if ResponseTooLargeError occurs.
       operationId: query_query_post
       requestBody:
         content:
