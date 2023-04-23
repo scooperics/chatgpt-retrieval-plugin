@@ -9,7 +9,7 @@ paths:
   /query:
     post:
       summary: Query
-      description: Plugin for searching through SEC and CSA filings and Earnings Call Transcripts to find answers to questions and retrieve relevant information about any stock over 50 Million in annual revenue.
+      description: Accepts search query objects array each with query and optional filter. Break down complex questions into sub-questions. Refine results by criteria, e.g. cik / form_type, don't do this often. Split queries if ResponseTooLargeError occurs.
       operationId: query_query_post
       requestBody:
         content:
