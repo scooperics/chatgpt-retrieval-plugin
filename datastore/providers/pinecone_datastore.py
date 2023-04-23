@@ -240,10 +240,10 @@ class PineconeDataStore(DataStore):
                 # elif field == "end_date":
                 #     pinecone_filter["published_date"] = pinecone_filter.get("published_date", {})
                 #     pinecone_filter["published_date"]["$lte"] = to_unix_timestamp(value)
-                if field == "document_ids":
-                    print(f"Filtering documents with ids {value}")
-                    pinecone_filter["document_id"] = pinecone_filter.get("document_id", {})
-                    pinecone_filter["document_id"]["$in"] = value
+                if field == "filenames":
+                    print(f"Filtering documents with filenames {value}")
+                    pinecone_filter["filename"] = pinecone_filter.get("filename", {})
+                    pinecone_filter["filename"]["$in"] = value
                 else:
                     pinecone_filter[field] = value
 

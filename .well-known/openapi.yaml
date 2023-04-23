@@ -100,8 +100,8 @@ components:
       title: DocumentMetadataFilter
       type: object
       properties:
-        document_ids:
-          title: Document Ids
+        filenames:
+          title: Filenames
           type: array
           items:
             type: string
