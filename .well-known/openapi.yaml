@@ -48,18 +48,18 @@ components:
           type: string
         form_type:
           $ref: "#/components/schemas/FormType"
-        document_section:
-          title: Document Section
-          type: string
         published_date:
           title: Published Date
-          type: string
+          type: integer
         company_name:
           title: Company Name
           type: string
         document_id:
           title: Document Id
           type: string
+        component_number:
+          title: Component Number
+          type: integer
         symbol:
           title: Stock Symbol
           type: string
@@ -111,9 +111,6 @@ components:
           $ref: "#/components/schemas/FormType"
         company_name:
           title: Company Name
-          type: string
-        document_section:
-          title: Document Section
           type: string
         symbol:
           title: Stock Symbol
