@@ -1,20 +1,20 @@
 {
   "schema_version": "v1",
-  "name_for_model": "document_retrieval",
+  "name_for_model": "aitickerchat_document_retrieval",
   "name_for_human": "AITickerChat",
   "description_for_model": "Plugin for searching through SEC and CSA filings as well as earnings call transcripts to find answers to stock market questions and retrieve relevant information. Use it whenever a user asks for stock information that could be found in any SEC or CSA document filing or earnings call transcripts.",
   "description_for_human": "Retrieve insights from SEC and CSA filings as well as earnings call transcripts.",
   "auth": {
     "type": "service_http",
     "authorization_type": "bearer",
-    "verification_tokens": {"openai":"40f19d65f8114e478b846f99558204bc"}
+    "verification_tokens": {"openai":"c6b517173ff247398838232c09055042"}
   },
   "api": {
     "type": "openapi",
     "url": "https://stock-advisor.com/.well-known/openapi.yaml",
-    "has_user_authentication": false
-  },
+    "has_user_authentication":false
+},
   "logo_url": "https://stock-advisor.com/.well-known/logo.png",
   "contact_email": "scooper@intuitivecloudsolutions.com", 
-  "legal_info_url": "https://stock-advisor.com/terms-of-service"
+  "legal_info_url": "https://aitickerchat.com/terms-of-service"
 }
