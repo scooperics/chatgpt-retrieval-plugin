@@ -7,9 +7,7 @@
   "auth": {
     "type": "service_http",
     "authorization_type": "bearer",
-    "verification_tokens": {
-      "openai": "758e9ef7984b415688972d749f8aa58e (to be replaced during installation process)"
-    }
+    "verification_tokens": {"openai":"40f19d65f8114e478b846f99558204bc"}
   },
   "api": {
     "type": "openapi",
