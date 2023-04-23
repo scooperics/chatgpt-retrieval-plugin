@@ -66,8 +66,8 @@ class DocumentMetadataFilter(BaseModel):
     source: Optional[Source] = None
     form_type: Optional[FormType] = None
     company_name: Optional[str] = None
-    # start_date: Optional[str] = None
-    # end_date: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
     symbol: Optional[str] = None
     cik: Optional[str] = None
     fiscal_quarter: Optional[int] = None
@@ -77,7 +77,7 @@ class DocumentMetadataFilter(BaseModel):
 class Query(BaseModel):
     query: str
     filter: Optional[DocumentMetadataFilter] = None
-    top_k: Optional[int] = 3
+    top_k: Optional[int] = 10
 
 
 class QueryWithEmbedding(Query):

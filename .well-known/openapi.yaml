@@ -105,6 +105,12 @@ components:
           type: array
           items:
             type: string
+        start_date:
+          title: Start Date
+          type: string
+        end_date:
+          title: End Date
+          type: string
         source:
           $ref: "#/components/schemas/Source"
         form_type:

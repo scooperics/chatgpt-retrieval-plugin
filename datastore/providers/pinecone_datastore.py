@@ -234,13 +234,15 @@ class PineconeDataStore(DataStore):
         # For other fields, uses the $eq operator
         for field, value in filter.dict().items():
             if value is not None:
-                # if field == "start_date":
-                #     pinecone_filter["published_date"] = pinecone_filter.get("published_date", {})
-                #     pinecone_filter["published_date"]["$gte"] = to_unix_timestamp(value)
-                # elif field == "end_date":
-                #     pinecone_filter["published_date"] = pinecone_filter.get("published_date", {})
-                #     pinecone_filter["published_date"]["$lte"] = to_unix_timestamp(value)
-                if field == "filenames":
+                if field == "start_date":
+                    print(f"Filtering documents with start date {value}")
+                    pinecone_filter["published_date"] = pinecone_filter.get("published_date", {})
+                    pinecone_filter["published_date"]["$gte"] = to_unix_timestamp(value)
+                elif field == "end_date":
+                    print(f"Filtering documents with end date {value}")
+                    pinecone_filter["published_date"] = pinecone_filter.get("published_date", {})
+                    pinecone_filter["published_date"]["$lte"] = to_unix_timestamp(value)
+                elif field == "filenames":
                     print(f"Filtering documents with filenames {value}")
                     pinecone_filter["filename"] = pinecone_filter.get("filename", {})
                     pinecone_filter["filename"]["$in"] = value
