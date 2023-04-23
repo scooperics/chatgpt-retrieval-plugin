@@ -4,7 +4,13 @@
   "name_for_human": "AITickerChat",
   "description_for_model": "Plugin for searching through SEC and CSA filings as well as earnings call transcripts to find answers to stock market questions and retrieve relevant information. Use it whenever a user asks for stock information that could be found in any SEC or CSA document filing or earnings call transcripts.",
   "description_for_human": "Retrieve insights from SEC and CSA filings as well as earnings call transcripts.",
-  "auth": { "type": "none" },
+  "auth": {
+    "type": "service_http",
+    "authorization_type": "bearer",
+    "verification_tokens": {
+      "openai": "758e9ef7984b415688972d749f8aa58e (to be replaced during installation process)"
+    }
+  },
   "api": {
     "type": "openapi",
     "url": "https://stock-advisor.com/.well-known/openapi.yaml",
