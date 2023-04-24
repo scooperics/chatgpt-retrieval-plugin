@@ -246,6 +246,10 @@ class PineconeDataStore(DataStore):
                     print(f"Filtering documents with filenames {value}")
                     pinecone_filter["filename"] = pinecone_filter.get("filename", {})
                     pinecone_filter["filename"]["$in"] = value
+                elif field == "form_types":
+                    print(f"Filtering documents with form_types {value}")
+                    pinecone_filter["form_type"] = pinecone_filter.get("form_type", {})
+                    pinecone_filter["form_type"]["$in"] = value
                 else:
                     pinecone_filter[field] = value
 

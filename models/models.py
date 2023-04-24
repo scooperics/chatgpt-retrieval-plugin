@@ -64,7 +64,7 @@ class DocumentWithChunks(Document):
 class DocumentMetadataFilter(BaseModel):
     filenames: Optional[List[str]] = None
     source: Optional[Source] = None
-    form_type: Optional[FormType] = None
+    form_types: Optional[List[FormType]] = None
     company_name: Optional[str] = None
     start_date: Optional[str] = None
     end_date: Optional[str] = None
