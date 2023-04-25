@@ -9,7 +9,7 @@ paths:
   /query:
     post:
       summary: Query
-      description: Accepts search query objects array each with query and optional filter. Break down complex questions into sub-questions. Refine results by criteria; such as symbol, form_types, fiscal_year, fiscal_quarter and document_sections.  Only pass valid filters and enumerator values.  Split queries if ResponseTooLargeError occurs.
+      description: Accepts search query objects array each with query and optional filter. Break down complex questions into sub-questions. Refine results by criteria; such as symbol, form_types, fiscal_year, fiscal_quarter and document_sections.  Only pass valid filters and enumerator values.
       operationId: query_query_post
       requestBody:
         content:
@@ -216,7 +216,7 @@ components:
         - 10-Q
         - 10-Q-table
         - DEFA14A
-        - DEF 14A
+        - 'DEF 14A'
         - S-1
         - S-3
         - earnings_transcript
@@ -256,6 +256,7 @@ components:
         - part2item4
         - part2item5
         - part2item6
+        - 'No Section'
         # - 1-1
         # - 1-2
         # - 1-3

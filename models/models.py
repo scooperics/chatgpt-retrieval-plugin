@@ -52,6 +52,7 @@ class DocumentSection(str, Enum):
     part2item4 = 'part2item4'
     part2item5 = 'part2item5'
     part2item6 = 'part2item6'
+    NoSection = 'No Section'
     # _1_1 = '1-1'
     # _1_2 = '1-2'
     # _1_3 = '1-3'
