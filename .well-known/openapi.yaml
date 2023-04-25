@@ -9,7 +9,7 @@ paths:
   /query:
     post:
       summary: Query
-      description: Accepts search query objects array each with query and optional filter. Break down complex questions into sub-questions. Refine results by criteria; such as symbol, form_types, fiscal_year and fiscal_quarter.  Split queries if ResponseTooLargeError occurs.
+      description: Accepts search query objects array each with query and optional filter. Break down complex questions into sub-questions. Refine results by criteria; such as symbol, form_types, fiscal_year, fiscal_quarter and document_sections.  Split queries if ResponseTooLargeError occurs.
       operationId: query_query_post
       requestBody:
         content:
@@ -48,6 +48,8 @@ components:
           type: string
         form_type:
           $ref: "#/components/schemas/FormType"
+        document_section:
+          $ref: "#/components/schemas/DocumentSection"
         published_date:
           title: Published Date
           type: integer
@@ -117,6 +119,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/FormType"
+        document_sections:
+          type: array
+          items:
+            $ref: "#/components/schemas/DocumentSection"
         company_name:
           title: Company Name
           type: string
@@ -198,7 +204,7 @@ components:
       enum:
         - SEC
         - CSA
-        - Earnings Call Transcripts
+        - EarningsCallTranscripts
       type: string
       description: An enumeration.
     FormType:
@@ -214,6 +220,76 @@ components:
         - S-1
         - S-3
         - earnings_transcript
+      type: string
+      description: An enumeration.
+    DocumentSection:
+      title: Document Section
+      enum:
+        - '1'
+        - 1A
+        - 1B
+        - '2'
+        - '3'
+        - '4'
+        - '5'
+        - '6'
+        - '7'
+        - 7A
+        - '8'
+        - '9'
+        - 9A
+        - 9B
+        - '10'
+        - '11'
+        - '12'
+        - '13'
+        - '14'
+        - '15'
+        - part1item1
+        - part1item2
+        - part1item3
+        - part1item4
+        - part2item1
+        - part2item1a
+        - part2item2
+        - part2item3
+        - part2item4
+        - part2item5
+        - part2item6
+        - 1-1
+        - 1-2
+        - 1-3
+        - 1-4
+        - 2-1
+        - 2-2
+        - 2-3
+        - 2-4
+        - 2-5
+        - 2-6
+        - 3-1
+        - 3-2
+        - 3-3
+        - 4-1
+        - 4-2
+        - 5-1
+        - 5-2
+        - 5-3
+        - 5-4
+        - 5-5
+        - 5-6
+        - 5-7
+        - 5-8
+        - 6-1
+        - 6-2
+        - 6-3
+        - 6-4
+        - 6-5
+        - 6-6
+        - 6-10
+        - 7-1
+        - 8-1
+        - 9-1
+        - signature
       type: string
       description: An enumeration.
     ValidationError:
