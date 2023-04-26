@@ -1,7 +1,7 @@
 import os
 import psycopg2
 
-def lookup_documents(sort_by, sort_order, limit, symbol, form_types, fiscal_quarter, fiscal_year):
+def lookup_documents(sort_order, limit, symbol, form_types, fiscal_quarter, fiscal_year):
 
     POSTGRES_DB = os.environ.get("POSTGRES_DB")
     POSTGRES_USER = os.environ.get("POSTGRES_USER")
@@ -51,8 +51,8 @@ def lookup_documents(sort_by, sort_order, limit, symbol, form_types, fiscal_quar
             params.append(str(fiscal_year))
 
         # Apply sorting and limiting if all three parameters are not None
-        if sort_by is not None and sort_order is not None and limit is not None:
-            query += f" ORDER BY {sort_by} {sort_order} LIMIT %s"
+        if sort_order is not None and limit is not None:
+            query += f" ORDER BY published_date {sort_order} LIMIT %s"
             params.append(limit)
 
         # Execute the SQL query

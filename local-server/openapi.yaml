@@ -9,7 +9,7 @@ paths:
   /query:
     post:
       summary: Query
-      description: Accepts search query objects array each with query and optional filter. Break down complex questions into sub-questions. Refine results by criteria, e.g. time / source, don't do this often. Split queries if ResponseTooLargeError occurs.
+      description: Accepts search query objects with query, filter, sort_order (always by date) and limit. Break down complex questions into sub-questions. Refine by criteria such as symbol, form_types, document_sections (array of just item numbers), fiscal_year, and fiscal_quarter. 
       operationId: query_query_post
       requestBody:
         content:
@@ -38,21 +38,40 @@ components:
       properties:
         source:
           $ref: "#/components/schemas/Source"
-        source_id:
-          title: Source Id
+        filename:
+          title: Filename
           type: string
         url:
           title: Url
           type: string
-        created_at:
-          title: Created At
-          type: string
-        author:
-          title: Author
+        form_type:
+          $ref: "#/components/schemas/FormType"
+        document_section:
+          $ref: "#/components/schemas/DocumentSection"
+        published_date:
+          title: Published Date
+          type: integer
+        company_name:
+          title: Company Name
           type: string
         document_id:
           title: Document Id
           type: string
+        component_number:
+          title: Component Number
+          type: integer
+        symbol:
+          title: Stock Symbol
+          type: string
+        cik:
+          title: Stock CIK
+          type: string
+        fiscal_quarter:
+          title: Fiscal Quarter
+          type: integer
+        fiscal_year:
+          title: Fiscal Year
+          type: integer
     DocumentChunkWithScore:
       title: DocumentChunkWithScore
       required:
@@ -81,23 +100,29 @@ components:
       title: DocumentMetadataFilter
       type: object
       properties:
-        document_id:
-          title: Document Id
+        filenames:
+          title: Filenames
+          type: array
+          items:
+            type: string
+        form_types:
+          type: array
+          items:
+            $ref: "#/components/schemas/FormType"
+        symbol:
+          title: Stock Symbol
           type: string
-        source:
-          $ref: "#/components/schemas/Source"
-        source_id:
-          title: Source Id
-          type: string
-        author:
-          title: Author
-          type: string
-        start_date:
-          title: Start Date
-          type: string
-        end_date:
-          title: End Date
-          type: string
+        fiscal_quarter:
+          title: Fiscal Quarter
+          type: integer
+        fiscal_year:
+          title: Fiscal Year
+          type: integer
+        document_sections:
+          title: Document Sections
+          type: array
+          items:
+            $ref: "#/components/schemas/DocumentSection"
     HTTPValidationError:
       title: HTTPValidationError
       type: object
@@ -118,6 +143,18 @@ components:
           type: string
         filter:
           $ref: "#/components/schemas/DocumentMetadataFilter"
+        sort_order:
+          title: Sort Order
+          type: string
+          enum:
+            - asc
+            - desc
+          default: desc
+          description: The order in which to sort the results. 'asc' for ascending, 'desc' for descending.
+        limit:
+          title: Limit Documents
+          type: integer
+          description: The maximum number of documents to return.
         top_k:
           title: Top K
           type: integer
@@ -167,6 +204,92 @@ components:
         - chat
       type: string
       description: An enumeration.
+    FormType:
+      title: From Type
+      enum:
+        - 8-K
+        - 10-K
+        - 10-K-table
+        - 10-Q
+        - 10-Q-table
+        - DEFA14A
+        - 'DEF 14A'
+        - S-1
+        - S-3
+        - earnings_transcript
+      type: string
+      description: An enumeration.
+    DocumentSection:
+      title: Document Section
+      enum:
+        - '1'
+        - 1A
+        - 1B
+        - '2'
+        - '3'
+        - '4'
+        - '5'
+        - '6'
+        - '7'
+        - 7A
+        - '8'
+        - '9'
+        - 9A
+        - 9B
+        - '10'
+        - '11'
+        - '12'
+        - '13'
+        - '14'
+        - '15'
+        - part1item1
+        - part1item2
+        - part1item3
+        - part1item4
+        - part2item1
+        - part2item1a
+        - part2item2
+        - part2item3
+        - part2item4
+        - part2item5
+        - part2item6
+        - 'No Section'
+        # - 1-1
+        # - 1-2
+        # - 1-3
+        # - 1-4
+        # - 2-1
+        # - 2-2
+        # - 2-3
+        # - 2-4
+        # - 2-5
+        # - 2-6
+        # - 3-1
+        # - 3-2
+        # - 3-3
+        # - 4-1
+        # - 4-2
+        # - 5-1
+        # - 5-2
+        # - 5-3
+        # - 5-4
+        # - 5-5
+        # - 5-6
+        # - 5-7
+        # - 5-8
+        # - 6-1
+        # - 6-2
+        # - 6-3
+        # - 6-4
+        # - 6-5
+        # - 6-6
+        # - 6-10
+        # - 7-1
+        # - 8-1
+        # - 9-1
+        # - signature
+      type: string
+      description: Allowable values are '1', 1A, 1B, '2', '3', '4', '5', '6', '7', '8' 
     ValidationError:
       title: ValidationError
       required:

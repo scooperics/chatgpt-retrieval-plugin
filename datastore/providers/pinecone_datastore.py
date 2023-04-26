@@ -119,13 +119,12 @@ class PineconeDataStore(DataStore):
         async def _single_query(query: QueryWithEmbedding) -> QueryResult:
             print(f"Query: {query.query}")
             print(f"Filter: {query.filter}")
-            print(f"TopK: {query.top_k}")
-            print(f"SortBy: {query.sort_by}")
             print(f"SortOrder: {query.sort_order}")
-            print(f"LimitDocuments: {query.limit_documents}")
+            print(f"Limit: {query.limit}")
+            print(f"TopK: {query.top_k}")
 
             # Convert the metadata filter object to a dict with pinecone filter expressions
-            pinecone_filter = self._get_pinecone_filter(query.filter, query.sort_by, query.sort_order, query.limit_documents)
+            pinecone_filter = self._get_pinecone_filter(query.filter, query.sort_order, query.limit)
             print(f"Pinecone Filter: {pinecone_filter}")
 
             try:
@@ -200,7 +199,7 @@ class PineconeDataStore(DataStore):
                 raise e
 
         # Convert the metadata filter object to a dict with pinecone filter expressions
-        pinecone_filter = self._get_pinecone_filter(filter, None, None, None)
+        pinecone_filter = self._get_pinecone_filter(filter, None, None)
         # Delete vectors that match the filter from the index if the filter is not empty
         if pinecone_filter != {}:
             try:
@@ -225,7 +224,7 @@ class PineconeDataStore(DataStore):
         return True
 
     def _get_pinecone_filter(
-        self, filter: Optional[DocumentMetadataFilter] = None, sort_by: Optional[str] = None, sort_order: Optional[str] = None, limit_documents: Optional[int] = None
+        self, filter: Optional[DocumentMetadataFilter] = None, sort_order: Optional[str] = None, limit: Optional[int] = None
     ) -> Dict[str, Any]:
 
         pinecone_filter = {}
@@ -235,7 +234,7 @@ class PineconeDataStore(DataStore):
         # if the query is coming in from the app, filenames will be set.  If it is coming in from the plugin it will not
         # convert the plugin inputs to a list of filenames by doing a database lookup.
         if filenames is None:
-            filenames = lookup_documents(sort_by, sort_order, limit_documents, filter.symbol, filter.form_types, filter.fiscal_quarter, filter.fiscal_year)
+            filenames = lookup_documents(sort_order, limit, filter.symbol, filter.form_types, filter.fiscal_quarter, filter.fiscal_year)
 
         # filter by filename
         print(f"Filtering documents with filenames {filenames}")

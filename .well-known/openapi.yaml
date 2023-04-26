@@ -9,7 +9,7 @@ paths:
   /query:
     post:
       summary: Query
-      description: Accepts search query objects array each with query and optional filter. Break down complex questions into sub-questions. Refine results by criteria; such as symbol, form_types, fiscal_year, and fiscal_quarter.  To get "most recent" data sort_by published_date.
+      description: Accepts search query objects with query, filter, sort_order (always by date) and limit. Break down complex questions into sub-questions. Refine by criteria such as symbol, form_types, document_sections (array of just item numbers), fiscal_year, and fiscal_quarter. 
       operationId: query_query_post
       requestBody:
         content:
@@ -120,6 +120,11 @@ components:
         fiscal_year:
           title: Fiscal Year
           type: integer
+        document_sections:
+          title: Document Sections
+          type: array
+          items:
+            $ref: "#/components/schemas/DocumentSection"
     HTTPValidationError:
       title: HTTPValidationError
       type: object
@@ -140,25 +145,22 @@ components:
           type: string
         filter:
           $ref: "#/components/schemas/DocumentMetadataFilter"
-        top_k:
-          title: Top K
-          type: integer
-          default: 10
-        sort_by:
-          title: Sort By
-          type: string
-          # description: The field by which to sort the results. Allowed values: 'published_date'.
         sort_order:
           title: Sort Order
           type: string
           enum:
             - asc
             - desc
-          # description: The order in which to sort the results. 'asc' for ascending, 'desc' for descending.
-        limit_documents:
+          default: desc
+          description: The order in which to sort when sorting by date. 'asc' for ascending, 'desc' for descending.
+        limit:
           title: Limit Documents
           type: integer
-          # description: The maximum number of documents to return.
+          description: The maximum number of documents to return.
+        top_k:
+          title: Top K
+          type: integer
+          default: 10
     QueryRequest:
       title: QueryRequest
       required:
