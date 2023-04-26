@@ -9,7 +9,7 @@ paths:
   /query:
     post:
       summary: Query
-      description: Accepts search query objects with query, filter, sort_order (always by date) and limit. Break down complex questions into sub-questions. Refine by criteria such as symbol, form_types, document_sections (array of just item numbers), fiscal_year, and fiscal_quarter. 
+      description: Accepts search query objects with query, filter, sort_order and limit. Break down complex questions into sub-questions. Refine by criteria such as symbol, form_types, document_sections (pass array of only item numbers, no descriptions), fiscal_year, and fiscal_quarter. 
       operationId: query_query_post
       requestBody:
         content:

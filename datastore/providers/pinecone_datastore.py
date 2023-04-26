@@ -227,8 +227,10 @@ class PineconeDataStore(DataStore):
         self, filter: Optional[DocumentMetadataFilter] = None, sort_order: Optional[str] = None, limit: Optional[int] = None
     ) -> Dict[str, Any]:
 
-        pinecone_filter = {}
+        if filter is None:
+            return {}
 
+        pinecone_filter = {}
         filenames = filter.filenames
 
         # if the query is coming in from the app, filenames will be set.  If it is coming in from the plugin it will not
