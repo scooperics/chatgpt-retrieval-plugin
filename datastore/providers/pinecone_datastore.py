@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional
 import pinecone
 from tenacity import retry, wait_random_exponential, stop_after_attempt
 import asyncio
-
+from datastore.providers.database import lookup_documents
 from datastore.datastore import DataStore
 from models.models import (
     DocumentChunk,
@@ -120,9 +120,12 @@ class PineconeDataStore(DataStore):
             print(f"Query: {query.query}")
             print(f"Filter: {query.filter}")
             print(f"TopK: {query.top_k}")
+            print(f"SortBy: {query.sort_by}")
+            print(f"SortOrder: {query.sort_order}")
+            print(f"LimitDocuments: {query.limit_documents}")
 
             # Convert the metadata filter object to a dict with pinecone filter expressions
-            pinecone_filter = self._get_pinecone_filter(query.filter)
+            pinecone_filter = self._get_pinecone_filter(query.filter, query.sort_by, query.sort_order, query.limit_documents)
             print(f"Pinecone Filter: {pinecone_filter}")
 
             try:
@@ -197,7 +200,7 @@ class PineconeDataStore(DataStore):
                 raise e
 
         # Convert the metadata filter object to a dict with pinecone filter expressions
-        pinecone_filter = self._get_pinecone_filter(filter)
+        pinecone_filter = self._get_pinecone_filter(filter, None, None, None)
         # Delete vectors that match the filter from the index if the filter is not empty
         if pinecone_filter != {}:
             try:
@@ -222,42 +225,25 @@ class PineconeDataStore(DataStore):
         return True
 
     def _get_pinecone_filter(
-        self, filter: Optional[DocumentMetadataFilter] = None
+        self, filter: Optional[DocumentMetadataFilter] = None, sort_by: Optional[str] = None, sort_order: Optional[str] = None, limit_documents: Optional[int] = None
     ) -> Dict[str, Any]:
-        if filter is None:
-            return {}
 
         pinecone_filter = {}
 
-        # For each field in the MetadataFilter, check if it has a value and add the corresponding pinecone filter expression
-        # For start_date and end_date, uses the $gte and $lte operators respectively
-        # For other fields, uses the $eq operator
-        for field, value in filter.dict().items():
-            if value is not None:
-                if field == "start_date":
-                    print(f"Filtering documents with start date {value}")
-                    pinecone_filter["published_date"] = pinecone_filter.get("published_date", {})
-                    pinecone_filter["published_date"]["$gte"] = to_unix_timestamp(value)
-                elif field == "end_date":
-                    print(f"Filtering documents with end date {value}")
-                    pinecone_filter["published_date"] = pinecone_filter.get("published_date", {})
-                    pinecone_filter["published_date"]["$lte"] = to_unix_timestamp(value)
-                elif field == "filenames":
-                    print(f"Filtering documents with filenames {value}")
-                    pinecone_filter["filename"] = pinecone_filter.get("filename", {})
-                    pinecone_filter["filename"]["$in"] = value
-                elif field == "form_types":
-                    print(f"Filtering documents with form_types {value}")
-                    pinecone_filter["form_type"] = pinecone_filter.get("form_type", {})
-                    pinecone_filter["form_type"]["$in"] = value
-                elif field == "document_sections":
-                    print(f"Filtering documents with document_section {value}")
-                    pinecone_filter["document_section"] = pinecone_filter.get("document_section", {})
-                    pinecone_filter["document_section"]["$in"] = value
-                else:
-                    pinecone_filter[field] = value
+        filenames = filter.filenames
+
+        # if the query is coming in from the app, filenames will be set.  If it is coming in from the plugin it will not
+        # convert the plugin inputs to a list of filenames by doing a database lookup.
+        if filenames is None:
+            filenames = lookup_documents(sort_by, sort_order, limit_documents, filter.symbol, filter.form_types, filter.fiscal_quarter, filter.fiscal_year)
+
+        # filter by filename
+        print(f"Filtering documents with filenames {filenames}")
+        pinecone_filter["filename"] = {}
+        pinecone_filter["filename"]["$in"] = filenames
 
         return pinecone_filter
+
 
     def _get_pinecone_metadata(
         self, metadata: Optional[DocumentChunkMetadata] = None
