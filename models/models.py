@@ -5,10 +5,11 @@ from enum import Enum
 
 class Source(str, Enum):
     SEC = "SEC"
-    CSA = "CSA"
+    # CSA = "CSA"
     Earnings_Call_Transcripts = "EarningsCallTranscripts"
 
 class FormType(str, Enum):
+    earnings_transcript = "earnings_transcript"
     _8_K = "8-K"
     _10_K = "10-K"
     _10_K_table = "10-K-table"
@@ -18,7 +19,6 @@ class FormType(str, Enum):
     DEF_14A = "DEF 14A"
     S_1 = "S-1"
     S_3 = "S-3"
-    earnings_transcript = "earnings_transcript"
 
 class DocumentSection(str, Enum):
     _1 = '1'
@@ -147,7 +147,7 @@ class DocumentMetadataFilter(BaseModel):
 class Query(BaseModel):
     query: str
     filter: Optional[DocumentMetadataFilter] = None
-    # sort_order: Optional[str] = "desc"
+    sort_order: Optional[str] = "desc"
     limit: Optional[int] = None
     top_k: Optional[int] = 10
 

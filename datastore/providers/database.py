@@ -1,8 +1,7 @@
 import os
 import psycopg2
-from services.date import to_unix_timestamp
 
-def lookup_documents(symbol, form_types, fiscal_quarter, fiscal_year, limit):
+def lookup_documents(sort_order, limit, symbol, form_types, fiscal_quarter, fiscal_year):
 
     POSTGRES_DB = os.environ.get("POSTGRES_DB")
     POSTGRES_USER = os.environ.get("POSTGRES_USER")
@@ -37,10 +36,10 @@ def lookup_documents(symbol, form_types, fiscal_quarter, fiscal_year, limit):
             params.append(cik)
         # if start_date is not None:
         #     query += " AND published_date >= %s"
-        #     params.append(to_unix_timestamp(start_date))
+        #     params.append(start_date)
         # if end_date is not None:
         #     query += " AND published_date <= %s"
-        #     params.append(to_unix_timestamp(end_date))
+        #     params.append(end_date)
         if form_types is not None:
             query += " AND form_type = ANY(%s)"
             params.append(form_types)
@@ -52,8 +51,8 @@ def lookup_documents(symbol, form_types, fiscal_quarter, fiscal_year, limit):
             params.append(str(fiscal_year))
  
         # Apply sorting and limiting if all three parameters are not None
-        if limit is not None:
-            query += f" ORDER BY published_date desc LIMIT %s"
+        if sort_order is not None and limit is not None and ("10-K" in form_types or "10-Q" in form_types):
+            query += f" ORDER BY published_date {sort_order} LIMIT %s"
             params.append(limit)
 
         if len(params) == 0:

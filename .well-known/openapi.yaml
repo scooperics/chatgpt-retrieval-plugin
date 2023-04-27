@@ -9,8 +9,7 @@ paths:
   /query:
     post:
       summary: Query
-      # description: Accepts search query objects with query, optional filter, sort_order and optional limit, do not overuse these. Break down complex questions into sub-questions. Filter by (all optional) symbol, form_types, document_sections (pass array of only item numbers), fiscal_year, and fiscal_quarter.
-      description: Accepts search query objects with query, optional filter, and optional limit which should only be used when you need to find the most recent.  Break down complex questions into sub-questions. Filter by symbol, form_types, document_sections (like '1', '1A', 'part1item1'), fiscal_year, fiscal_quarter.
+      description: Accepts search query objects with query, optional filter, optional sort_order and optional limit. Break down complex questions into sub-questions. Filter by symbol, source, form_types, document_sections ('1', '1A', '7', '8'), fiscal_year, and fiscal_quarter. 
       operationId: query_query_post
       requestBody:
         content:
@@ -121,12 +120,6 @@ components:
         fiscal_year:
           title: Fiscal Year
           type: integer
-        # start_date:
-        #   title: Start Date
-        #   type: string
-        # end_date:
-        #   title: End Date
-        #   type: string
         document_sections:
           title: Document Sections
           type: array
@@ -209,23 +202,22 @@ components:
       title: Source
       enum:
         - SEC
-        - CSA
         - EarningsCallTranscripts
       type: string
       description: An enumeration.
     FormType:
       title: From Type
       enum:
-        - 8-K
+        - earnings_transcript
         - 10-K
         - 10-K-table
         - 10-Q
         - 10-Q-table
+        - 8-K
         - DEFA14A
         - 'DEF 14A'
         - S-1
         - S-3
-        - earnings_transcript
       type: string
       description: An enumeration.
     DocumentSection:
