@@ -236,7 +236,7 @@ class PineconeDataStore(DataStore):
         # if the query is coming in from the app, filenames will be set.  If it is coming in from the plugin it will not
         # convert the plugin inputs to a list of filenames by doing a database lookup.
         if filenames is None:
-            filenames = lookup_documents(sort_order, limit, filter.symbol, filter.form_types, filter.fiscal_quarter, filter.fiscal_year)
+            filenames = lookup_documents(sort_order, limit, filter.symbol, filter.form_types, filter.fiscal_quarter, filter.fiscal_year, filter.start_date, filter.end_date)
 
         # filter by filename
         print(f"Filtering documents with filenames {filenames}")
