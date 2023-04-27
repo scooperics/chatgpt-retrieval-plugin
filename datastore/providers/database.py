@@ -17,15 +17,15 @@ def lookup_documents(sort_order, limit, symbol, form_types, fiscal_quarter, fisc
         cursor = conn.cursor()
 
         # Convert the symbol to cik
-        print("getting cik")
         cik = None
         if symbol is not None:
+            print("getting cik")
             cursor.execute("SELECT cik FROM stocks WHERE symbol = %s", (symbol,))
             result = cursor.fetchone()
             if result:
                 cik = result[0]
-
-        print(f"cik: {cik}")
+                print(f"cik: {cik}")
+    
         # Construct the SQL query
         query = "SELECT filename FROM source_file_metadata WHERE 1=1"
         params = []
@@ -49,11 +49,16 @@ def lookup_documents(sort_order, limit, symbol, form_types, fiscal_quarter, fisc
         if fiscal_year is not None:
             query += " AND fiscal_year = %s"
             params.append(str(fiscal_year))
-
+ 
         # Apply sorting and limiting if all three parameters are not None
         if sort_order is not None and limit is not None:
             query += f" ORDER BY published_date {sort_order} LIMIT %s"
             params.append(limit)
+
+        if len(params) == 0:
+            cursor.close()
+            conn.close()
+            return[]
 
         # Execute the SQL query
         print(f"query: {query}")

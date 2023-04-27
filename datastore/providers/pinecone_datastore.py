@@ -227,7 +227,7 @@ class PineconeDataStore(DataStore):
         self, filter: Optional[DocumentMetadataFilter] = None, sort_order: Optional[str] = None, limit: Optional[int] = None
     ) -> Dict[str, Any]:
 
-        if filter is None:
+        if filter is None and limit is None:
             return {}
 
         pinecone_filter = {}
@@ -242,7 +242,8 @@ class PineconeDataStore(DataStore):
         print(f"Filtering documents with filenames {filenames}")
         pinecone_filter["filename"] = {}
         pinecone_filter["filename"]["$in"] = filenames
-
+        if filter.document_id != None:
+            pinecone_filter["document_id"] = filter.document_id
         return pinecone_filter
 
 

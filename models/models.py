@@ -138,6 +138,7 @@ class DocumentMetadataFilter(BaseModel):
     # start_date: Optional[str] = None
     # end_date: Optional[str] = None
     symbol: Optional[str] = None
+    document_id: Optional[str] = None
     # cik: Optional[str] = None
     fiscal_quarter: Optional[int] = None
     fiscal_year: Optional[int] = None
