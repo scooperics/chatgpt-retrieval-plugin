@@ -135,8 +135,8 @@ class DocumentMetadataFilter(BaseModel):
     form_types: Optional[List[FormType]] = None
     document_sections: Optional[List[DocumentSection]] = None
     # company_name: Optional[str] = None
-    start_date: Optional[str] = None
-    end_date: Optional[str] = None
+    # start_date: Optional[str] = None
+    # end_date: Optional[str] = None
     symbol: Optional[str] = None
     document_id: Optional[str] = None
     # cik: Optional[str] = None
@@ -147,7 +147,7 @@ class DocumentMetadataFilter(BaseModel):
 class Query(BaseModel):
     query: str
     filter: Optional[DocumentMetadataFilter] = None
-    sort_order: Optional[str] = "desc"
+    # sort_order: Optional[str] = "desc"
     limit: Optional[int] = None
     top_k: Optional[int] = 10
 
