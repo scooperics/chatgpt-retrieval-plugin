@@ -162,7 +162,7 @@ components:
         limit:
           title: Limit Documents
           type: integer
-          description: The maximum number of documents to return.  Do not use when form_types is ['8-K'].
+          description: The maximum number of documents to return.  Do not use when form_types is ['8-K'] and instead filter by fiscal_year and fiscal_quarter.
         top_k:
           title: Top K
           type: integer
