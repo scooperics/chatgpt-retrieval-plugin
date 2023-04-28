@@ -9,7 +9,7 @@ paths:
   /query:
     post:
       summary: Query
-      description: Accepts search query objects with query, filter, optional sort_order and optional limit. Break down complex questions into sub-questions. Filter by symbol, form_types, and optionally document_sections ('1', '1A', '7', '8'), fiscal_year, and fiscal_quarter.
+      description: Accepts search query objects with query, filter, optional sort_order and optional limit. Break down complex questions into sub-questions. Filter by symbol, form_types (prioritize array with '10-K', '10-Q' and 'earnings_transcript'), fiscal_year, and fiscal_quarter.
       operationId: query_query_post
       requestBody:
         content:
@@ -162,7 +162,7 @@ components:
         limit:
           title: Limit Documents
           type: integer
-          description: The maximum number of documents to return.
+          description: The maximum number of documents to return.  Do not use when form_types is ['8-K'].
         top_k:
           title: Top K
           type: integer
