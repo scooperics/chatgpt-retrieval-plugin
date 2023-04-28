@@ -225,7 +225,7 @@ components:
         - S-1
         - S-3
       type: string
-      description: An enumeration describing type of document to retrieve.  Allowable values include 'earnings_transcript', '10-K', '10-Q', '8-K', 'DEF 14A', 'S-1', and 'S-3'.
+      description: An enumeration describing type of document to retrieve.  Always use 'earnings_transcript' for earnings calls.  Use '10-K-table' or '10-Q-table' for financial statement data. Use '10-K' or '10-Q' to summarize quarterly or annual results.  Use '8-K' for news.  Use 'DEF 14A' for information on a shareholder vote. Use 'S-1' for IPOs.  Use 'S-3' for information on raising capital.
     DocumentSection:
       title: Document Section
       enum:
