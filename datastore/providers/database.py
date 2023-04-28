@@ -1,6 +1,15 @@
 import os
 import psycopg2
 
+
+# since there are no 10-Qs in Q4, Chat GPT sometimes gets confused and asks for it.  In these cases, we need to add 10-Ks to the filter criteria
+# or there will be no response.
+def add_form_10K_if_needed(form_types, fiscal_quarter):
+    if fiscal_quarter == 4 and '10-Q' in form_types and '10-K' not in form_types:
+        form_types.append('10-K')
+    return form_types
+
+
 def lookup_documents(sort_order, limit, symbol, form_types, fiscal_quarter, fiscal_year):
 
     POSTGRES_DB = os.environ.get("POSTGRES_DB")
@@ -41,6 +50,7 @@ def lookup_documents(sort_order, limit, symbol, form_types, fiscal_quarter, fisc
         #     query += " AND published_date <= %s"
         #     params.append(end_date)
         if form_types is not None:
+            add_form_10K_if_needed(form_types, fiscal_quarter)
             query += " AND form_type = ANY(%s)"
             params.append(form_types)
         if fiscal_quarter is not None:
