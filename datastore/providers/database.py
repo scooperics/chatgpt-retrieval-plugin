@@ -51,7 +51,7 @@ def lookup_documents(sort_order, limit, symbol, form_types, fiscal_quarter, fisc
             params.append(str(fiscal_year))
  
         # Apply sorting and limiting if all three parameters are not None
-        if sort_order is not None and limit is not None and ("10-K" in form_types or "10-Q" in form_types):
+        if sort_order is not None and limit is not None and form_types is not None and ("10-K" in form_types or "10-Q" in form_types):
             query += f" ORDER BY published_date {sort_order} LIMIT %s"
             params.append(limit)
 
