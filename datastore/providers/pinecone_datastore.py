@@ -15,6 +15,7 @@ from models.models import (
     Source,
 )
 from services.date import to_unix_timestamp
+import datetime
 
 # Read environment variables for Pinecone configuration
 PINECONE_API_KEY = os.environ.get("PINECONE_API_KEY")
@@ -141,9 +142,6 @@ class PineconeDataStore(DataStore):
                 print(f"Error querying index: {e}")
                 raise e
 
-            print("QUERY RESPONSE")
-            print(query_response)
-
             query_results: List[DocumentChunkWithScore] = []
             for result in query_response.matches:
                 score = result.score
@@ -163,6 +161,16 @@ class PineconeDataStore(DataStore):
                 ):
                     metadata_without_text["source"] = None
 
+                print(metadata_without_text)
+                # for some stupid reason, if the cik is only a 4 digit number with 000000s on the front, it thinks it is a date
+                # cast to string first or it will fail.
+                if metadata_without_text["cik"] is not None and isinstance(metadata_without_text["cik"], datetime.date):
+                    formatted_cik = metadata_without_text["cik"].strftime('%Y')
+                    zero_padded_cik = formatted_cik.zfill(10)
+                    metadata_without_text["cik"] = zero_padded_cik
+                print(metadata_without_text)
+
+
                 # Create a document chunk with score object with the result data
                 result = DocumentChunkWithScore(
                     id=result.id,
@@ -170,7 +178,9 @@ class PineconeDataStore(DataStore):
                     text=metadata["text"] if metadata and "text" in metadata else None,
                     metadata=metadata_without_text,
                 )
+
                 print(result)
+
                 query_results.append(result)
             return QueryResult(query=query.query, results=query_results)
 
