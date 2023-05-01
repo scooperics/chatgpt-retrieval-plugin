@@ -141,6 +141,9 @@ class PineconeDataStore(DataStore):
                 print(f"Error querying index: {e}")
                 raise e
 
+            print("QUERY RESPONSE")
+            print(query_response)
+
             query_results: List[DocumentChunkWithScore] = []
             for result in query_response.matches:
                 score = result.score
