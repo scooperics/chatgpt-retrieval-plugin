@@ -170,6 +170,7 @@ class PineconeDataStore(DataStore):
                     text=metadata["text"] if metadata and "text" in metadata else None,
                     metadata=metadata_without_text,
                 )
+                print(result)
                 query_results.append(result)
             return QueryResult(query=query.query, results=query_results)
 
