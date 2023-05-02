@@ -19,6 +19,8 @@ class FormType(str, Enum):
     DEF_14A = "DEF 14A"
     S_1 = "S-1"
     S_3 = "S-3"
+    _20_F = "20-F"
+    _6_K = "6-K"
 
 class DocumentSection(str, Enum):
     _1 = '1'
