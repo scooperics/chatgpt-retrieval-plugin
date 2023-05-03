@@ -78,7 +78,11 @@ async def upsert(
     request: UpsertRequest = Body(...),
 ):
     try:
+        print("GOT UPSERT REQUEST:")
+        print(request)
         ids = await datastore.upsert(request.documents)
+        print("IDs ARE:")
+        print(ids)
         return UpsertResponse(ids=ids)
     except Exception as e:
         raise HTTPException(status_code=500, detail="Internal Service Error")
