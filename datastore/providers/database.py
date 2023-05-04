@@ -8,12 +8,6 @@ def add_form_10K_if_needed(form_types, fiscal_quarter):
     if fiscal_quarter == 4 and '10-Q' in form_types and '10-K' not in form_types:
         form_types.append('10-K')
 
-    # also if 10-K or 10-Q add the -tables automatically
-    # if '10-K' in form_types and '10-K-table' not in form_types:
-    #     form_types.append('10-K-table')
-    # if '10-Q' in form_types and '10-Q-table' not in form_types:
-    #     form_types.append('10-Q-table')
-
     return form_types
 
 
