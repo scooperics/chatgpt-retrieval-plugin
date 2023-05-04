@@ -9,7 +9,7 @@ paths:
   /query:
     post:
       summary: Query
-      description: Accepts search query objects with query, filter, optional sort_order and optional limit. Break down complex questions into sub-questions. Filter by symbol, form_types, and optionally document_sections ('1', '1A', '7', '8'), fiscal_year, and fiscal_quarter.
+      description: Accepts search query objects with query, filter, optional sort_order and limit. Break down complex questions into sub-questions. Filter by symbol, form_types (prioritize array with '10-K', '10-Q' and 'earnings_transcript'), fiscal_year, fiscal_quarter, and xbrl_only for just financial numbers.
       operationId: query_query_post
       requestBody:
         content:
@@ -46,20 +46,12 @@ components:
           type: string
         form_type:
           $ref: "#/components/schemas/FormType"
-        document_section:
-          $ref: "#/components/schemas/DocumentSection"
         published_date:
           title: Published Date
           type: integer
-        company_name:
-          title: Company Name
-          type: string
         document_id:
           title: Document Id
           type: string
-        component_number:
-          title: Component Number
-          type: integer
         symbol:
           title: Stock Symbol
           type: string
@@ -72,6 +64,9 @@ components:
         fiscal_year:
           title: Fiscal Year
           type: integer
+        is_xbrl:
+          title: Is Xbrl
+          type: bool
     DocumentChunkWithScore:
       title: DocumentChunkWithScore
       required:
@@ -124,11 +119,9 @@ components:
           title: Fiscal Year
           type: integer
           description: The fiscal year of the document being retrieved.  This should be an integer of the year (e.g. 2023)
-        document_sections:
-          title: Document Sections
-          type: array
-          items:
-            $ref: "#/components/schemas/DocumentSection"
+        xbrl_only:
+          title: Xbrl Only
+          type: bool
     HTTPValidationError:
       title: HTTPValidationError
       type: object
@@ -149,18 +142,18 @@ components:
           type: string
         filter:
           $ref: "#/components/schemas/DocumentMetadataFilter"
-        # sort_order:
-        #   title: Sort Order
-        #   type: string
-        #   enum:
-        #     - asc
-        #     - desc
-        #   default: desc
-        #   description: The order in which to sort the results. 'asc' for ascending, 'desc' for descending.
-        # limit:
-        #   title: Limit Documents
-        #   type: integer
-        #   description: The maximum number of documents to return.
+        sort_order:
+          title: Sort Order
+          type: string
+          enum:
+            - asc
+            - desc
+          default: desc
+          description: The order in which to sort when sorting by date. 'asc' for ascending, 'desc' for descending.
+        limit:
+          title: Limit Documents
+          type: integer
+          description: The maximum number of documents to return.  Do not use when form_types is ['8-K'] and instead filter by fiscal_year and fiscal_quarter.
         top_k:
           title: Top K
           type: integer
@@ -206,7 +199,6 @@ components:
       title: Source
       enum:
         - SEC
-        - CSA
         - EarningsCallTranscripts
       type: string
       description: An enumeration.
@@ -217,8 +209,6 @@ components:
         - 10-K
         - 10-Q
         - 8-K
-        - 10-K-table
-        - 10-Q-table
         - DEFA14A
         - 'DEF 14A'
         - S-1
@@ -227,77 +217,6 @@ components:
         - 20-F
       type: string
       description: An enumeration describing type of document to retrieve.  Allowable values include 'earnings_transcript', '10-K', '10-Q', '8-K', 'DEF 14A', 'S-1', and 'S-3'.
-    DocumentSection:
-      title: Document Section
-      enum:
-        - '1'
-        - 1A
-        - 1B
-        - '2'
-        - '3'
-        - '4'
-        - '5'
-        - '6'
-        - '7'
-        - 7A
-        - '8'
-        - '9'
-        - 9A
-        - 9B
-        - '10'
-        - '11'
-        - '12'
-        - '13'
-        - '14'
-        - '15'
-        - part1item1
-        - part1item2
-        - part1item3
-        - part1item4
-        - part2item1
-        - part2item1a
-        - part2item2
-        - part2item3
-        - part2item4
-        - part2item5
-        - part2item6
-        - 'No Section'
-        # - 1-1
-        # - 1-2
-        # - 1-3
-        # - 1-4
-        # - 2-1
-        # - 2-2
-        # - 2-3
-        # - 2-4
-        # - 2-5
-        # - 2-6
-        # - 3-1
-        # - 3-2
-        # - 3-3
-        # - 4-1
-        # - 4-2
-        # - 5-1
-        # - 5-2
-        # - 5-3
-        # - 5-4
-        # - 5-5
-        # - 5-6
-        # - 5-7
-        # - 5-8
-        # - 6-1
-        # - 6-2
-        # - 6-3
-        # - 6-4
-        # - 6-5
-        # - 6-6
-        # - 6-10
-        # - 7-1
-        # - 8-1
-        # - 9-1
-        # - signature
-      type: string
-      description: An enumeration describing the section of any SEC document to retrieve.  This should just be the item number in the form '1', '1A', '7', '8'...
     ValidationError:
       title: ValidationError
       required:

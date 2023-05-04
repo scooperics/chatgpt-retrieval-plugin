@@ -256,6 +256,10 @@ class PineconeDataStore(DataStore):
         print(f"Filtering documents with filenames {filenames}")
         pinecone_filter["filename"] = {}
         pinecone_filter["filename"]["$in"] = filenames
+
+        if filter.xbrl_only:
+            pinecone_filter["is_xbrl"] = True
+
         if filter.document_id != None:
             pinecone_filter["document_id"] = filter.document_id
         return pinecone_filter
