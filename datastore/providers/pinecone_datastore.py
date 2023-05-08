@@ -247,6 +247,12 @@ class PineconeDataStore(DataStore):
         pinecone_filter = {}
         filenames = filter.filenames
 
+        # correct GPT's favorite names for BRK.
+        if (filter.symbol == 'BRK' or filter.symbol == 'BRK.A'):
+            filter.symbol = 'BRK-A'
+        if (filter.symbol == 'BRK.B'):
+            filter.symbol = 'BRK-B'
+            
         # if the query is coming in from the app, filenames will be set.  If it is coming in from the plugin it will not
         # convert the plugin inputs to a list of filenames by doing a database lookup.
         if filenames is None:
