@@ -65,6 +65,9 @@ def lookup_documents(sort_order, limit, symbol, form_types, fiscal_quarter, fisc
         if sort_order is not None and limit is not None:
             query += f" ORDER BY published_date {sort_order} LIMIT %s"
             params.append(limit)
+        elif limit is not None:
+            query += f" ORDER BY published_date desc LIMIT %s"
+            params.append(limit)
 
         if len(params) == 0:
             cursor.close()
