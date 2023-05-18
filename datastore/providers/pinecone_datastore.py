@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional
 import pinecone
 from tenacity import retry, wait_random_exponential, stop_after_attempt
 import asyncio
-from datastore.providers.database import lookup_documents
+from datastore.providers.database import DatabaseManager
 from datastore.datastore import DataStore
 from models.models import (
     DocumentChunk,
@@ -27,6 +27,8 @@ assert PINECONE_INDEX is not None
 
 # Initialize Pinecone with the API key and environment
 pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENVIRONMENT)
+
+databaseManager = DatabaseManager()
 
 # Set the batch size for upserting vectors to Pinecone
 UPSERT_BATCH_SIZE = 100
@@ -143,6 +145,8 @@ class PineconeDataStore(DataStore):
                 raise e
 
             query_results: List[DocumentChunkWithScore] = []
+            id_results = []
+
             for result in query_response.matches:
                 score = result.score
                 metadata = result.metadata
@@ -182,6 +186,10 @@ class PineconeDataStore(DataStore):
                 print(result)
 
                 query_results.append(result)
+                id_results.append(result.id)
+
+            databaseManager.insert_query_log(query.filter.document_ids, query.filter.filenames, query.filter.fiscal_quarter, query.filter.fiscal_year, query.filter.form_types, query, query.filter.symbol, query.filter.xbrl_only, query.sort_order, query.limit, query.top_k, id_results)
+
             return QueryResult(query=query.query, results=query_results)
 
         # Use asyncio.gather to run multiple _single_query coroutines concurrently and collect their results
@@ -256,7 +264,7 @@ class PineconeDataStore(DataStore):
         # if the query is coming in from the app, filenames will be set.  If it is coming in from the plugin it will not
         # convert the plugin inputs to a list of filenames by doing a database lookup.
         if filenames is None:
-            filenames = lookup_documents(sort_order, limit, filter.symbol, filter.form_types, filter.fiscal_quarter, filter.fiscal_year)
+            filenames = databaseManager.lookup_documents(sort_order, limit, filter.symbol, filter.form_types, filter.fiscal_quarter, filter.fiscal_year)
 
         # filter by filename
         print(f"Filtering documents with filenames {filenames}")
