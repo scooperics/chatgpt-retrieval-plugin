@@ -83,8 +83,8 @@ class DatabaseManager:
     def insert_query_log(self, document_ids, filenames, fiscal_quarter, fiscal_year, form_types, query, symbol, xbrl_only, sort_order, limit, top_k, result_ids):
         try:
             insert = sql.SQL("""
-                INSERT INTO query_logs (document_ids, filenames, fiscal_quarter, fiscal_year, form_types, query, symbol, xbrl_only, sort_order, limit, top_k, result_ids)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO query_logs (document_ids, filenames, fiscal_quarter, fiscal_year, form_types, query, symbol, xbrl_only, sort_order, limit_documents, top_k, result_ids, created_at, updated_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,  NOW(), NOW())
             """)
 
             values = (document_ids, filenames, fiscal_quarter, fiscal_year, form_types, query, symbol, xbrl_only, sort_order, limit, top_k, result_ids)

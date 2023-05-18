@@ -188,7 +188,7 @@ class PineconeDataStore(DataStore):
                 query_results.append(result)
                 id_results.append(result.id)
 
-            databaseManager.insert_query_log(query.filter.document_ids, query.filter.filenames, query.filter.fiscal_quarter, query.filter.fiscal_year, query.filter.form_types, query, query.filter.symbol, query.filter.xbrl_only, query.sort_order, query.limit, query.top_k, id_results)
+            databaseManager.insert_query_log(query.filter.document_id, query.filter.filenames, query.filter.fiscal_quarter, query.filter.fiscal_year, query.filter.form_types, query.query, query.filter.symbol, query.filter.xbrl_only, query.sort_order, query.limit, query.top_k, id_results)
 
             return QueryResult(query=query.query, results=query_results)
 
