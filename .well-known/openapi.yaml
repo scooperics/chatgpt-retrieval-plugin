@@ -159,7 +159,7 @@ components:
         top_k:
           title: Top K
           type: integer
-          default: 10
+          default: 20
     QueryRequest:
       title: QueryRequest
       required:
