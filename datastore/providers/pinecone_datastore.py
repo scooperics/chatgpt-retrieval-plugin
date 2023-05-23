@@ -188,7 +188,11 @@ class PineconeDataStore(DataStore):
                 query_results.append(result)
                 id_results.append(result.id)
 
-            databaseManager.insert_query_log(query.filter.document_id, query.filter.filenames, query.filter.fiscal_quarter, query.filter.fiscal_year, query.filter.form_types, query.query, query.filter.symbol, query.filter.xbrl_only, query.sort_order, query.limit, query.top_k, id_results)
+            try:
+                databaseManager.insert_query_log(query.filter.document_id, query.filter.filenames, query.filter.fiscal_quarter, query.filter.fiscal_year, query.filter.form_types, query.query, query.filter.symbol, query.filter.xbrl_only, query.sort_order, query.limit, query.top_k, id_results)
+
+            except Exception as e:
+                print(f"Error logging query {e}")
 
             return QueryResult(query=query.query, results=query_results)
 
@@ -254,6 +258,7 @@ class PineconeDataStore(DataStore):
 
         pinecone_filter = {}
         filenames = filter.filenames
+        document_ids = filter.document_ids
 
         # correct GPT's favorite names for BRK.
         if (filter.symbol == 'BRK' or filter.symbol == 'BRK.A'):
@@ -261,21 +266,35 @@ class PineconeDataStore(DataStore):
         if (filter.symbol == 'BRK.B'):
             filter.symbol = 'BRK-B'
             
-        # if the query is coming in from the app, filenames will be set.  If it is coming in from the plugin it will not
+        # if the query is coming in from the app, filenames or document_ids will be set.  If it is coming in from the plugin it will not
         # convert the plugin inputs to a list of filenames by doing a database lookup.
-        if filenames is None:
+        if filenames is None and document_ids is None:
             filenames = databaseManager.lookup_documents(sort_order, limit, filter.symbol, filter.form_types, filter.fiscal_quarter, filter.fiscal_year)
 
-        # filter by filename
-        print(f"Filtering documents with filenames {filenames}")
-        pinecone_filter["filename"] = {}
-        pinecone_filter["filename"]["$in"] = filenames
+            # filter by filename
+            print(f"Filtering documents with filenames {filenames}")
+            pinecone_filter["filename"] = {}
+            pinecone_filter["filename"]["$in"] = filenames
+
+        else:
+            # filter by filename
+            if filenames is not None:
+                print(f"Filtering documents with filenames {filenames}")
+                pinecone_filter["filename"] = {}
+                pinecone_filter["filename"]["$in"] = filenames
+
+            # filter by document_ids
+            if document_ids is not None:
+                print(f"Filtering documents with document_ids {document_ids}")
+                pinecone_filter["document_id"] = {}
+                pinecone_filter["document_id"]["$in"] = document_ids
 
         if filter.xbrl_only:
             pinecone_filter["is_xbrl"] = True
 
         if filter.document_id != None:
             pinecone_filter["document_id"] = filter.document_id
+
         return pinecone_filter
 
 
