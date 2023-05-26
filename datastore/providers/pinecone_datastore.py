@@ -28,14 +28,15 @@ assert PINECONE_INDEX is not None
 # Initialize Pinecone with the API key and environment
 pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENVIRONMENT)
 
-databaseManager = DatabaseManager()
-
 # Set the batch size for upserting vectors to Pinecone
 UPSERT_BATCH_SIZE = 100
 
 
 class PineconeDataStore(DataStore):
     def __init__(self):
+
+        self.databaseManager = DatabaseManager()
+
         # Check if the index name is specified and exists in Pinecone
         if PINECONE_INDEX and PINECONE_INDEX not in pinecone.list_indexes():
 
@@ -189,7 +190,7 @@ class PineconeDataStore(DataStore):
                 id_results.append(result.id)
 
             try:
-                databaseManager.insert_query_log(query.filter.document_ids, query.filter.filenames, query.filter.fiscal_quarter, query.filter.fiscal_year, query.filter.form_types, query.query, query.filter.symbol, query.filter.xbrl_only, query.sort_order, query.limit, query.top_k, id_results)
+                self.databaseManager.insert_query_log(query.filter.document_ids, query.filter.filenames, query.filter.fiscal_quarter, query.filter.fiscal_year, query.filter.form_types, query.query, query.filter.symbol, query.filter.xbrl_only, query.sort_order, query.limit, query.top_k, id_results)
 
             except Exception as e:
                 print(f"Error logging query {e}")
@@ -269,7 +270,7 @@ class PineconeDataStore(DataStore):
         # if the query is coming in from the app, filenames or document_ids will be set.  If it is coming in from the plugin it will not
         # convert the plugin inputs to a list of filenames by doing a database lookup.
         if filenames is None and document_ids is None:
-            filenames = databaseManager.lookup_documents(sort_order, limit, filter.symbol, filter.form_types, filter.fiscal_quarter, filter.fiscal_year)
+            filenames = self.databaseManager.lookup_documents(sort_order, limit, filter.symbol, filter.form_types, filter.fiscal_quarter, filter.fiscal_year)
 
             # filter by filename
             print(f"Filtering documents with filenames {filenames}")

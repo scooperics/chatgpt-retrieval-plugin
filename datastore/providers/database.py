@@ -1,9 +1,8 @@
 import os
 import psycopg2
-from psycopg2 import sql
+from psycopg2 import pool, sql
 
 class DatabaseManager:
-    
     def __init__(self):
         self.POSTGRES_DB = os.environ.get("POSTGRES_DB")
         self.POSTGRES_USER = os.environ.get("POSTGRES_USER")
@@ -12,14 +11,17 @@ class DatabaseManager:
         self.POSTGRES_PORT = os.environ.get("POSTGRES_PORT")
         self.POSTGRES_SSLMODE = os.environ.get("POSTGRES_SSLMODE")
 
-        self.conn = psycopg2.connect(database=self.POSTGRES_DB, user=self.POSTGRES_USER, password=self.POSTGRES_PASSWORD, host=self.POSTGRES_HOST, port=self.POSTGRES_PORT, sslmode=self.POSTGRES_SSLMODE)
-        self.cursor = self.conn.cursor()
+        # create a connection pool
+        self.db_pool = psycopg2.pool.ThreadedConnectionPool(1, 20, database=self.POSTGRES_DB, user=self.POSTGRES_USER, password=self.POSTGRES_PASSWORD, host=self.POSTGRES_HOST, port=self.POSTGRES_PORT, sslmode=self.POSTGRES_SSLMODE)
 
+    def get_conn(self):
+        return self.db_pool.getconn()
 
-    def __del__(self):
-        self.cursor.close()
-        self.conn.close()
+    def put_conn(self, conn):
+        self.db_pool.putconn(conn)
 
+    def close_all_connections(self):
+        self.db_pool.closeall()
 
     @staticmethod
     def add_form_10K_if_needed(form_types, fiscal_quarter):
@@ -27,13 +29,16 @@ class DatabaseManager:
             form_types.append('10-K')
         return form_types
 
-
     def lookup_documents(self, sort_order, limit, symbol, form_types, fiscal_quarter, fiscal_year):
+        conn = None
+        cursor = None
         try:
+            conn = self.get_conn()
+            cursor = conn.cursor()
             cik = None
             if symbol is not None:
-                self.cursor.execute("SELECT cik FROM stocks WHERE symbol = %s", (symbol,))
-                result = self.cursor.fetchone()
+                cursor.execute("SELECT cik FROM stocks WHERE symbol = %s", (symbol,))
+                result = cursor.fetchone()
                 if result:
                     cik = result[0]
 
@@ -65,8 +70,8 @@ class DatabaseManager:
             if len(params) == 0:
                 return []
 
-            self.cursor.execute(query, params)
-            results = self.cursor.fetchall()
+            cursor.execute(query, params)
+            results = cursor.fetchall()
 
             filenames = [row[0] for row in results]
             return filenames
@@ -74,14 +79,22 @@ class DatabaseManager:
         except psycopg2.Error as e:
             print(f"Database error occurred: {e}")
             return []
-
         except Exception as e:
             print(f"An error occurred: {e}")
             return []
-
+        finally:
+            if cursor is not None:
+                cursor.close()
+            if conn is not None:
+                self.put_conn(conn)
 
     def insert_query_log(self, document_ids, filenames, fiscal_quarter, fiscal_year, form_types, query, symbol, xbrl_only, sort_order, limit, top_k, result_ids):
+        conn = None
+        cursor = None
         try:
+            conn = self.get_conn()
+            cursor = conn.cursor()
+
             insert = sql.SQL("""
                 INSERT INTO query_logs (document_ids, filenames, fiscal_quarter, fiscal_year, form_types, query, symbol, xbrl_only, sort_order, limit_documents, top_k, result_ids, created_at, updated_at)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,  NOW(), NOW())
@@ -89,15 +102,16 @@ class DatabaseManager:
 
             values = (document_ids, filenames, fiscal_quarter, fiscal_year, form_types, query, symbol, xbrl_only, sort_order, limit, top_k, result_ids)
 
-            self.cursor.execute(insert, values)
-            self.conn.commit()
-
+            cursor.execute(insert, values)
+            conn.commit()
         except psycopg2.Error as e:
             # Handle database-related exceptions
             print(f"Database error occurred: {e}")
-            return
-
         except Exception as e:
             # Handle other exceptions
             print(f"An error occurred: {e}")
-            return
+        finally:
+            if cursor is not None:
+                cursor.close()
+            if conn is not None:
+                self.put_conn(conn)
