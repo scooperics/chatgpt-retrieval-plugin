@@ -190,7 +190,7 @@ class PineconeDataStore(DataStore):
                 id_results.append(result.id)
 
             try:
-                self.databaseManager.insert_query_log(query.filter.document_ids, query.filter.filenames, query.filter.fiscal_quarter, query.filter.fiscal_year, query.filter.form_types, query.query, query.filter.symbol, query.filter.xbrl_only, query.sort_order, query.limit, query.top_k, id_results)
+                self.databaseManager.insert_query_log(query.filter.document_ids, query.filter.filenames, query.filter.fiscal_quarter, query.filter.fiscal_year, query.filter.form_types, query.query, query.filter.symbol, query.filter.xbrl_only, query.filter.user_id, query.sort_order, query.limit, query.top_k, id_results)
 
             except Exception as e:
                 print(f"Error logging query {e}")

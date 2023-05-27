@@ -88,7 +88,7 @@ class DatabaseManager:
             if conn is not None:
                 self.put_conn(conn)
 
-    def insert_query_log(self, document_ids, filenames, fiscal_quarter, fiscal_year, form_types, query, symbol, xbrl_only, sort_order, limit, top_k, result_ids):
+    def insert_query_log(self, document_ids, filenames, fiscal_quarter, fiscal_year, form_types, query, symbol, xbrl_only, user_id, sort_order, limit, top_k, result_ids):
         conn = None
         cursor = None
         try:
@@ -96,11 +96,11 @@ class DatabaseManager:
             cursor = conn.cursor()
 
             insert = sql.SQL("""
-                INSERT INTO query_logs (document_ids, filenames, fiscal_quarter, fiscal_year, form_types, query, symbol, xbrl_only, sort_order, limit_documents, top_k, result_ids, created_at, updated_at)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,  NOW(), NOW())
+                INSERT INTO query_logs (document_ids, filenames, fiscal_quarter, fiscal_year, form_types, query, symbol, xbrl_only, user_id, sort_order, limit_documents, top_k, result_ids, created_at, updated_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,  NOW(), NOW())
             """)
 
-            values = (document_ids, filenames, fiscal_quarter, fiscal_year, form_types, query, symbol, xbrl_only, sort_order, limit, top_k, result_ids)
+            values = (document_ids, filenames, fiscal_quarter, fiscal_year, form_types, query, symbol, xbrl_only, user_id, sort_order, limit, top_k, result_ids)
 
             cursor.execute(insert, values)
             conn.commit()

@@ -69,6 +69,7 @@ class DocumentMetadataFilter(BaseModel):
     fiscal_quarter: Optional[int] = None
     fiscal_year: Optional[int] = None
     xbrl_only: Optional[bool] = None
+    user_id: Optional[int] = None
 
 
 class Query(BaseModel):
