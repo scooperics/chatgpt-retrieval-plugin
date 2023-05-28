@@ -69,7 +69,11 @@ class DocumentMetadataFilter(BaseModel):
     fiscal_quarter: Optional[int] = None
     fiscal_year: Optional[int] = None
     xbrl_only: Optional[bool] = None
+    sort_order: Optional[str] = "desc"
+    limit: Optional[int] = None
     user_id: Optional[int] = None
+    controller: Optional[str] = None
+    model: Optional[str] = None
 
 
 class Query(BaseModel):

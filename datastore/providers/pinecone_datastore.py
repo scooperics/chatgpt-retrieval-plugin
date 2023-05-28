@@ -127,6 +127,12 @@ class PineconeDataStore(DataStore):
             print(f"Limit: {query.limit}")
             print(f"TopK: {query.top_k}")
 
+            # sometimes the chatgpt plugin puts limit within the filter, correct this.
+            if (query.filter.limit is not None) and (query.limit is None):
+                query.limit = query.filter.limit
+            if (query.filter.sort_order is not None) and (query.sort_order is None):
+                query.sort_order = query.filter.sort_order
+
             # Convert the metadata filter object to a dict with pinecone filter expressions
             pinecone_filter = self._get_pinecone_filter(query.filter, query.sort_order, query.limit)
             print(f"Pinecone Filter: {pinecone_filter}")
@@ -190,7 +196,7 @@ class PineconeDataStore(DataStore):
                 id_results.append(result.id)
 
             try:
-                self.databaseManager.insert_query_log(query.filter.document_ids, query.filter.filenames, query.filter.fiscal_quarter, query.filter.fiscal_year, query.filter.form_types, query.query, query.filter.symbol, query.filter.xbrl_only, query.filter.user_id, query.sort_order, query.limit, query.top_k, id_results)
+                self.databaseManager.insert_query_log(query.filter.document_ids, query.filter.filenames, query.filter.fiscal_quarter, query.filter.fiscal_year, query.filter.form_types, query.query, query.filter.symbol, query.filter.xbrl_only, query.filter.user_id, query.filter.controller, query.filter.model, query.sort_order, query.limit, query.top_k, id_results)
 
             except Exception as e:
                 print(f"Error logging query {e}")
