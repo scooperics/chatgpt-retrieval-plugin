@@ -220,6 +220,10 @@ class PineconeDataStore(DataStore):
         """
         Removes vectors by ids, filter, or everything from the index.
         """
+        print("DELETING")
+        print(f"IDS: {ids}")
+        print(f"FILTER: {filter}")
+
         # Delete all vectors from the index if delete_all is True
         if delete_all:
             try:
@@ -260,6 +264,8 @@ class PineconeDataStore(DataStore):
         self, filter: Optional[DocumentMetadataFilter] = None, sort_order: Optional[str] = None, limit: Optional[int] = None
     ) -> Dict[str, Any]:
 
+        print(filter)
+
         if filter is None and limit is None:
             return {}
 
@@ -275,7 +281,7 @@ class PineconeDataStore(DataStore):
             
         # if the query is coming in from the app, filenames or document_ids will be set.  If it is coming in from the plugin it will not
         # convert the plugin inputs to a list of filenames by doing a database lookup.
-        if filenames is None and document_ids is None:
+        if filenames is None and document_ids is None and filter.document_id is None:
             filenames = self.databaseManager.lookup_documents(sort_order, limit, filter.symbol, filter.form_types, filter.fiscal_quarter, filter.fiscal_year)
 
             # filter by filename
