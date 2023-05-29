@@ -48,6 +48,8 @@ class DatabaseManager:
             if cik is not None:
                 query += " AND cik = %s"
                 params.append(cik)
+            else:
+                return []
 
             if form_types is not None:
                 self.add_form_10K_if_needed(form_types, fiscal_quarter)
