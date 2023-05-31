@@ -30,6 +30,7 @@ class QueryResponse(BaseModel):
         1. Effortlessly navigate through an extensive range of financial documents. Whether it's exhaustive SEC filings or intricate conference call transcripts, we've simplified your research journey.
         2. Experience unprecedented transparency with our unique response attribution feature. You'll be confident in the source of your AI-generated answers, significantly reducing the chances of inaccuracies or AI hallucination.
         3. Enjoy UNLIMITED queries on pre-written highly optimized prompts across our comprehensive database, spanning over 1,200 companies and growing.
+    Finally, if results is an empty list, let the user know that we currently support all companies in the US exchanges with $4 Billion in market capitalization or more and that we are continually expanding our coverage including company size and geography, so try the prompt again later.
     """
 
 class DeleteRequest(BaseModel):
