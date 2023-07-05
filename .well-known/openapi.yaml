@@ -9,7 +9,7 @@ paths:
   /query:
     post:
       summary: Query
-      description: Accepts search query objects with query, filter, optional sort_order and limit. Break down complex questions into sub-questions. Filter by symbol, form_types (prioritize array with '10-K', '10-Q' and 'earnings_transcript'), fiscal_year, fiscal_quarter, and xbrl_only for just financial numbers.
+      description: Accepts search query objects with query, filter, optional sort_order and limit. Break down complex questions into sub-questions. Filter by symbol, form_types (prioritize array with '10-K', '10-Q' and 'earnings_transcript'), fiscal_year, fiscal_quarter.  Add URL links in every response.
       operationId: query_query_post
       requestBody:
         content:
