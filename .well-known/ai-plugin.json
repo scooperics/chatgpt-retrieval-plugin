@@ -2,7 +2,7 @@
   "schema_version": "v1",
   "name_for_model": "aitickerchat_document_retrieval",
   "name_for_human": "AI TICKER CHAT",
-  "description_for_model": "Plugin for searching through SEC filings and Earnings Transcripts to find answers to stock market questions and retrieve relevant information. Use when asked for stock information that could be found in any SEC filing or Earnings Transcript.  Always provide source URL links.",
+  "description_for_model": "Plugin for searching through SEC filings and Earnings Transcripts to find answers to stock market questions and retrieve relevant information. Use when asked for stock information that could be found in any SEC filing or Earnings Transcript.  Always summarize with source URL links in every response.",
   "description_for_human": "Retrieve USA stock insights from SEC filings as well as Earnings Call Transcripts.",
   "auth": {
     "type": "service_http",
