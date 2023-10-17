@@ -27,6 +27,11 @@ class DatabaseManager:
     def add_form_10K_if_needed(form_types, fiscal_quarter):
         if fiscal_quarter == 4 and '10-Q' in form_types and '10-K' not in form_types:
             form_types.append('10-K')
+        # if 10-K is included, also include 20-F and 40-F as PT doesn't always handle foreign companies 
+        if '10-K' in form_types and '20-F' not in form_types:
+            form_types.append('20-F')
+        if '10-K' in form_types and '40-F' not in form_types:
+            form_types.append('40-F')
         return form_types
 
     def lookup_documents(self, sort_order, limit, symbol, form_types, fiscal_quarter, fiscal_year):
