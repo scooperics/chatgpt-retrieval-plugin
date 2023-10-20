@@ -25,14 +25,18 @@ class DatabaseManager:
 
     @staticmethod
     def add_form_10K_if_needed(form_types, fiscal_quarter):
-        if fiscal_quarter == 4 and '10-Q' in form_types and '10-K' not in form_types:
-            form_types.append('10-K')
+        # Create a copy of the form_types list
+        form_types_copy = form_types.copy()
+
+        if fiscal_quarter == 4 and '10-Q' in form_types_copy and '10-K' not in form_types_copy:
+            form_types_copy.append('10-K')
         # if 10-K is included, also include 20-F and 40-F as PT doesn't always handle foreign companies 
-        if '10-K' in form_types and '20-F' not in form_types:
-            form_types.append('20-F')
-        if '10-K' in form_types and '40-F' not in form_types:
-            form_types.append('40-F')
-        return form_types
+        if '10-K' in form_types_copy and '20-F' not in form_types_copy:
+            form_types_copy.append('20-F')
+        if '10-K' in form_types_copy and '40-F' not in form_types_copy:
+            form_types_copy.append('40-F')
+
+        return form_types_copy
 
     def lookup_documents(self, sort_order, limit, symbol, form_types, fiscal_quarter, fiscal_year):
         conn = None
@@ -57,7 +61,7 @@ class DatabaseManager:
                 return []
 
             if form_types is not None:
-                self.add_form_10K_if_needed(form_types, fiscal_quarter)
+                form_types_copy =self.add_form_10K_if_needed(form_types, fiscal_quarter)
                 query += " AND form_type = ANY(%s)"
                 params.append(form_types)
             if fiscal_quarter is not None:

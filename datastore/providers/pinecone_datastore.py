@@ -128,10 +128,11 @@ class PineconeDataStore(DataStore):
             print(f"TopK: {query.top_k}")
 
             # sometimes the chatgpt plugin puts limit within the filter, correct this.
-            if (query.filter.limit is not None) and (query.limit is None):
-                query.limit = query.filter.limit
-            if (query.filter.sort_order is not None) and (query.sort_order is None):
-                query.sort_order = query.filter.sort_order
+            if query.filter is not None:
+                if (query.filter.limit is not None) and (query.limit is None):
+                    query.limit = query.filter.limit
+                if (query.filter.sort_order is not None) and (query.sort_order is None):
+                    query.sort_order = query.filter.sort_order
 
             # Convert the metadata filter object to a dict with pinecone filter expressions
             pinecone_filter = self._get_pinecone_filter(query.filter, query.sort_order, query.limit)
