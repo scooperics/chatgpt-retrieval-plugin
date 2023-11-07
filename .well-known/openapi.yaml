@@ -96,6 +96,9 @@ components:
     DocumentMetadataFilter:
       title: DocumentMetadataFilter
       type: object
+      required:
+        - symbol
+        - form_types
       properties:
         form_types:
           title: Form Types
@@ -132,6 +135,7 @@ components:
       title: Query
       required:
         - query
+        - filter
       type: object
       properties:
         query:
