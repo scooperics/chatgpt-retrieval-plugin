@@ -113,24 +113,24 @@ async def query_main(
         raise HTTPException(status_code=500, detail="Internal Service Error")
 
 
-@app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    # Check if the validation error is because 'symbol' is missing
-    for error in exc.errors():
-        if 'symbol' in error['loc']:
-            # Return a custom response asking for the 'symbol'
-            return JSONResponse(
-                status_code=422,
-                content={
-                    "message": "The 'symbol' field is required. Please include it in your request and try again.",
-                    "errors": exc.errors()
-                },
-            )
-    # If the error is not related to 'symbol', return the default detailed errors
-    return JSONResponse(
-        status_code=422,
-        content={"detail": exc.errors()},
-    )
+# @app.exception_handler(RequestValidationError)
+# async def validation_exception_handler(request: Request, exc: RequestValidationError):
+#     # Check if the validation error is because 'symbol' is missing
+#     for error in exc.errors():
+#         if 'symbol' in error['loc']:
+#             # Return a custom response asking for the 'symbol'
+#             return JSONResponse(
+#                 status_code=422,
+#                 content={
+#                     "message": "The 'symbol' field is required. Please include it in your request and try again.",
+#                     "errors": exc.errors()
+#                 },
+#             )
+#     # If the error is not related to 'symbol', return the default detailed errors
+#     return JSONResponse(
+#         status_code=422,
+#         content={"detail": exc.errors()},
+#     )
 
 
 

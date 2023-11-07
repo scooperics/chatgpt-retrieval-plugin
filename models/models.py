@@ -64,7 +64,7 @@ class DocumentMetadataFilter(BaseModel):
     filenames: Optional[List[str]] = None
     document_ids: Optional[List[str]] = None
     form_types: Optional[List[FormType]] = None
-    symbol: str
+    symbol: Optional[str] = None
     document_id: Optional[str] = None
     fiscal_quarter: Optional[int] = None
     fiscal_year: Optional[int] = None
@@ -81,7 +81,7 @@ class Query(BaseModel):
     filter: Optional[DocumentMetadataFilter] = None
     sort_order: Optional[str] = "desc"
     limit: Optional[int] = None
-    top_k: Optional[int] = 40
+    top_k: Optional[int] = 20
 
 
 class QueryWithEmbedding(Query):

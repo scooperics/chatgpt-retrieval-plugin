@@ -267,22 +267,21 @@ class PineconeDataStore(DataStore):
 
         print(filter)
 
-        if filter is None and limit is None:
+        if filter is None:
             return {}
 
         pinecone_filter = {}
         filenames = filter.filenames
         document_ids = filter.document_ids
 
-        # correct GPT's favorite names for BRK.
-        if (filter.symbol == 'BRK' or filter.symbol == 'BRK.A'):
-            filter.symbol = 'BRK-A'
-        if (filter.symbol == 'BRK.B'):
-            filter.symbol = 'BRK-B'
-            
         # if the query is coming in from the app, filenames or document_ids will be set.  If it is coming in from the plugin it will not
         # convert the plugin inputs to a list of filenames by doing a database lookup.
         if filenames is None and document_ids is None and filter.document_id is None:
+
+            # must have a symbol
+            if filter.symbol is None:
+                return {}
+
             filenames = self.databaseManager.lookup_documents(sort_order, limit, filter.symbol, filter.form_types, filter.fiscal_quarter, filter.fiscal_year)
 
             # filter by filename
