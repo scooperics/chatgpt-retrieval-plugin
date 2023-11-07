@@ -81,7 +81,7 @@ class Query(BaseModel):
     filter: Optional[DocumentMetadataFilter] = None
     sort_order: Optional[str] = "desc"
     limit: Optional[int] = None
-    top_k: Optional[int] = 10
+    top_k: Optional[int] = 40
 
 
 class QueryWithEmbedding(Query):
