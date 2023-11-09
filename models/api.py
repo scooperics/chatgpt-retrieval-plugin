@@ -47,11 +47,52 @@ class Statement(str, Enum):
 class Freq(str, Enum):
     annual = "annual"
     quarterly = "quarterly"
-    ytd = "yto"
-    ttm = "ttm"
-
 
 class FinancialStatement(BaseModel):
     statement: Statement = "ic"
     freq: Freq = "annual"
     symbol: Optional[str] = None
+
+
+class Quote(BaseModel):
+    symbol: Optional[str] = None
+
+class Resolution(str, Enum):
+    _1 = "1"
+    _5 = "5"
+    _15 = "15"
+    _30 = "30"
+    _60 = "60"
+    D = "D"
+    W = "W"
+    M = "M"
+
+class Candle(BaseModel):
+    symbol: Optional[str] = None
+    resolution: Resolution = "D"
+    from_timesamp: int = 0
+    to_timesamp: int = 0
+
+
+class Estimate(BaseModel):
+    symbol: Optional[str] = None
+    freq: Optional[Freq] = "quarterly"
+
+class PriceTarget(BaseModel):
+    symbol: Optional[str] = None
+
+class RecommendationTrend(BaseModel):
+    symbol: Optional[str] = None
+
+class EarningsCalendar(BaseModel):
+    from_timestamp: Optional[int] = None
+    to_timestamp: Optional[int] = None
+    symbol: Optional[str] = None
+
+
+class Dividend(BaseModel):
+    from_timestamp: Optional[int] = None
+    to_timestamp: Optional[int] = None
+    symbol: Optional[str] = None
+
+

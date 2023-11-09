@@ -6,6 +6,7 @@ from fastapi import FastAPI, File, Form, HTTPException, Depends, Body, UploadFil
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 import finnhub
+from datetime import datetime
 
 from models.api import (
     DeleteRequest,
@@ -14,7 +15,14 @@ from models.api import (
     QueryResponse,
     UpsertRequest,
     UpsertResponse,
-    FinancialStatement
+    FinancialStatement,
+    Quote,
+    Candle,
+    Estimate,
+    PriceTarget,
+    RecommendationTrend,
+    EarningsCalendar,
+    Dividend,
 )
 from datastore.factory import get_datastore
 from services.file import get_document_from_file
@@ -120,9 +128,156 @@ async def financial_statements_main(
     request: FinancialStatement = Body(...),
 ):
     try:
-        print(request.statement)
         body = finnhub_client.financials(request.symbol, request.statement, request.freq)
-        print(json.dumps(body))
+        return json.dumps(body)
+
+    except Exception as e:
+        print("Error:", e)
+        raise HTTPException(status_code=500, detail="Internal Service Error")
+
+
+@app.post(
+    "/quote",
+)
+async def quote_main(
+    request: Quote = Body(...),
+):
+    try:
+        body = finnhub_client.quote(request.symbol)
+        return json.dumps(body)
+
+    except Exception as e:
+        print("Error:", e)
+        raise HTTPException(status_code=500, detail="Internal Service Error")
+
+
+@app.post(
+    "/candles",
+)
+async def candles_main(
+    request: Candle = Body(...),
+):
+    try:
+        body = finnhub_client.stock_candles(request.symbol, request.resolution, request.from_timestamp, request.to_timestamp)
+        return json.dumps(body)
+
+    except Exception as e:
+        print("Error:", e)
+        raise HTTPException(status_code=500, detail="Internal Service Error")
+
+
+@app.post(
+    "/dividend",
+)
+async def dividend_main(
+    request: Dividend = Body(...),
+):
+    try:
+        body = finnhub_client.stock_dividends(request.symbol, _from=datetime.utcfromtimestamp(request.from_timestamp).strftime('%Y-%m-%d'), _to=datetime.utcfromtimestamp(request.to_timestamp).strftime('%Y-%m-%d'))
+        return json.dumps(body)
+
+    except Exception as e:
+        print("Error:", e)
+        raise HTTPException(status_code=500, detail="Internal Service Error")
+
+
+@app.post(
+    "/revenue-estimates",
+)
+async def revenue_estimates_main(
+    request: Estimate = Body(...),
+):
+    try:
+        body = finnhub_client.company_revenue_estimates(request.symbol, request.freq)
+        return json.dumps(body)
+
+    except Exception as e:
+        print("Error:", e)
+        raise HTTPException(status_code=500, detail="Internal Service Error")
+
+
+@app.post(
+    "/eps-estimates",
+)
+async def eps_estimates_main(
+    request: Estimate = Body(...),
+):
+    try:
+        body = finnhub_client.company_eps_estimates(request.symbol, request.freq)
+        return json.dumps(body)
+
+    except Exception as e:
+        print("Error:", e)
+        raise HTTPException(status_code=500, detail="Internal Service Error")
+
+
+@app.post(
+    "/ebitda-estimates",
+)
+async def ebitda_estimates_main(
+    request: Estimate = Body(...),
+):
+    try:
+        body = finnhub_client.company_ebitda_estimates(request.symbol, request.freq)
+        return json.dumps(body)
+
+    except Exception as e:
+        print("Error:", e)
+        raise HTTPException(status_code=500, detail="Internal Service Error")
+
+
+@app.post(
+    "/ebit-estimates",
+)
+async def ebit_estimates_main(
+    request: Estimate = Body(...),
+):
+    try:
+        body = finnhub_client.company_ebit_estimates(request.symbol, request.freq)
+        return json.dumps(body)
+
+    except Exception as e:
+        print("Error:", e)
+        raise HTTPException(status_code=500, detail="Internal Service Error")
+
+
+@app.post(
+    "/price-targets",
+)
+async def price_targets_main(
+    request: PriceTarget = Body(...),
+):
+    try:
+        body = finnhub_client.price_target(request.symbol)
+        return json.dumps(body)
+
+    except Exception as e:
+        print("Error:", e)
+        raise HTTPException(status_code=500, detail="Internal Service Error")
+
+
+@app.post(
+    "/recommendation-trends",
+)
+async def recommendation_trends_main(
+    request: RecommendationTrend = Body(...),
+):
+    try:
+        body = finnhub_client.recommendation_trends(request.symbol)
+        return json.dumps(body)
+
+    except Exception as e:
+        print("Error:", e)
+        raise HTTPException(status_code=500, detail="Internal Service Error")
+
+@app.post(
+    "/earnings-calendar",
+)
+async def earnings_calendar_main(
+    request: EarningsCalendar = Body(...),
+):
+    try:
+        body = finnhub_client.earnings_calendar(_from=datetime.utcfromtimestamp(request.from_timestamp).strftime('%Y-%m-%d'), _to=datetime.utcfromtimestamp(request.to_timestamp).strftime('%Y-%m-%d'), symbol=request.symbol)
         return json.dumps(body)
 
     except Exception as e:
