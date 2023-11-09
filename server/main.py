@@ -274,7 +274,7 @@ async def earnings_calendar_main(
     request: TimedResponse = Body(...),
 ):
     try:
-        body = finnhub_client.earnings_calendar(_from=datetime.utcfromtimestamp(request.from_timestamp).strftime('%Y-%m-%d'), _to=datetime.utcfromtimestamp(request.to_timestamp).strftime('%Y-%m-%d'), symbol=request.symbol)
+        body = finnhub_client.earnings_calendar(_from=datetime.utcfromtimestamp(request.from_timestamp).strftime('%Y-%m-%d'), to=datetime.utcfromtimestamp(request.to_timestamp).strftime('%Y-%m-%d'), symbol=request.symbol)
         return json.dumps(body)
 
     except Exception as e:
