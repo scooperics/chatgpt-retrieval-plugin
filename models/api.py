@@ -6,6 +6,7 @@ from models.models import (
 )
 from pydantic import BaseModel
 from typing import List, Optional
+from enum import Enum
 
 class UpsertRequest(BaseModel):
     documents: List[Document]
@@ -36,3 +37,21 @@ class DeleteRequest(BaseModel):
 
 class DeleteResponse(BaseModel):
     success: bool
+
+
+class Statement(str, Enum):
+    ic = "ic"
+    bs = "bs"
+    cf = "cf"
+
+class Freq(str, Enum):
+    annual = "annual"
+    quarterly = "quarterly"
+    ytd = "yto"
+    ttm = "ttm"
+
+
+class FinancialStatement(BaseModel):
+    statement: Statement = "ic"
+    freq: Freq = "annual"
+    symbol: Optional[str] = None

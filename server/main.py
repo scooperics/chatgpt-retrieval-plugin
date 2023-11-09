@@ -1,9 +1,11 @@
 import os
 from typing import Optional
+import json
 import uvicorn
 from fastapi import FastAPI, File, Form, HTTPException, Depends, Body, UploadFile
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
+import finnhub
 
 from models.api import (
     DeleteRequest,
@@ -12,17 +14,15 @@ from models.api import (
     QueryResponse,
     UpsertRequest,
     UpsertResponse,
+    FinancialStatement
 )
 from datastore.factory import get_datastore
 from services.file import get_document_from_file
 
 from models.models import DocumentMetadata, Source
 
-from fastapi import Request
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
-
-
+FINHUB_API_KEY = os.environ.get("FINHUB_API_KEY")
+finnhub_client = finnhub.Client(api_key=FINHUB_API_KEY)
 
 bearer_scheme = HTTPBearer()
 BEARER_TOKEN = os.environ.get("BEARER_TOKEN")
@@ -113,24 +113,21 @@ async def query_main(
         raise HTTPException(status_code=500, detail="Internal Service Error")
 
 
-# @app.exception_handler(RequestValidationError)
-# async def validation_exception_handler(request: Request, exc: RequestValidationError):
-#     # Check if the validation error is because 'symbol' is missing
-#     for error in exc.errors():
-#         if 'symbol' in error['loc']:
-#             # Return a custom response asking for the 'symbol'
-#             return JSONResponse(
-#                 status_code=422,
-#                 content={
-#                     "message": "The 'symbol' field is required. Please include it in your request and try again.",
-#                     "errors": exc.errors()
-#                 },
-#             )
-#     # If the error is not related to 'symbol', return the default detailed errors
-#     return JSONResponse(
-#         status_code=422,
-#         content={"detail": exc.errors()},
-#     )
+@app.post(
+    "/financial-statements",
+)
+async def financial_statements_main(
+    request: FinancialStatement = Body(...),
+):
+    try:
+        print(request.statement)
+        body = finnhub_client.financials(request.symbol, request.statement, request.freq)
+        print(json.dumps(body))
+        return json.dumps(body)
+
+    except Exception as e:
+        print("Error:", e)
+        raise HTTPException(status_code=500, detail="Internal Service Error")
 
 
 
