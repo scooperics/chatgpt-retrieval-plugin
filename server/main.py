@@ -16,13 +16,10 @@ from models.api import (
     UpsertRequest,
     UpsertResponse,
     FinancialStatement,
-    Quote,
+    SymbolOnly,
     Candle,
     Estimate,
-    PriceTarget,
-    RecommendationTrend,
-    EarningsCalendar,
-    Dividend,
+    TimedResponse,
 )
 from datastore.factory import get_datastore
 from services.file import get_document_from_file
@@ -140,7 +137,7 @@ async def financial_statements_main(
     "/quote",
 )
 async def quote_main(
-    request: Quote = Body(...),
+    request: SymbolOnly = Body(...),
 ):
     try:
         body = finnhub_client.quote(request.symbol)
@@ -170,7 +167,7 @@ async def candles_main(
     "/dividend",
 )
 async def dividend_main(
-    request: Dividend = Body(...),
+    request: TimedResponse = Body(...),
 ):
     try:
         body = finnhub_client.stock_dividends(request.symbol, _from=datetime.utcfromtimestamp(request.from_timestamp).strftime('%Y-%m-%d'), _to=datetime.utcfromtimestamp(request.to_timestamp).strftime('%Y-%m-%d'))
@@ -245,7 +242,7 @@ async def ebit_estimates_main(
     "/price-targets",
 )
 async def price_targets_main(
-    request: PriceTarget = Body(...),
+    request: SymbolOnly = Body(...),
 ):
     try:
         body = finnhub_client.price_target(request.symbol)
@@ -260,7 +257,7 @@ async def price_targets_main(
     "/recommendation-trends",
 )
 async def recommendation_trends_main(
-    request: RecommendationTrend = Body(...),
+    request: SymbolOnly = Body(...),
 ):
     try:
         body = finnhub_client.recommendation_trends(request.symbol)
@@ -274,7 +271,7 @@ async def recommendation_trends_main(
     "/earnings-calendar",
 )
 async def earnings_calendar_main(
-    request: EarningsCalendar = Body(...),
+    request: TimedResponse = Body(...),
 ):
     try:
         body = finnhub_client.earnings_calendar(_from=datetime.utcfromtimestamp(request.from_timestamp).strftime('%Y-%m-%d'), _to=datetime.utcfromtimestamp(request.to_timestamp).strftime('%Y-%m-%d'), symbol=request.symbol)
@@ -284,6 +281,20 @@ async def earnings_calendar_main(
         print("Error:", e)
         raise HTTPException(status_code=500, detail="Internal Service Error")
 
+
+@app.post(
+    "/insider-transactions",
+)
+async def insider_transactions(
+    request: TimedResponse = Body(...),
+):
+    try:
+        body = finnhub_client.stock_insider_transactions(request.symbol, datetime.utcfromtimestamp(request.from_timestamp).strftime('%Y-%m-%d'), datetime.utcfromtimestamp(request.to_timestamp).strftime('%Y-%m-%d'))
+        return json.dumps(body)
+
+    except Exception as e:
+        print("Error:", e)
+        raise HTTPException(status_code=500, detail="Internal Service Error")
 
 
 @sub_app.post(

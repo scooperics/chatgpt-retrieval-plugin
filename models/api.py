@@ -54,7 +54,7 @@ class FinancialStatement(BaseModel):
     symbol: Optional[str] = None
 
 
-class Quote(BaseModel):
+class SymbolOnly(BaseModel):
     symbol: Optional[str] = None
 
 class Resolution(str, Enum):
@@ -70,29 +70,18 @@ class Resolution(str, Enum):
 class Candle(BaseModel):
     symbol: Optional[str] = None
     resolution: Resolution = "D"
-    from_timesamp: int = 0
-    to_timesamp: int = 0
+    from_timestamp: int = 0
+    to_timestamp: int = 0
 
 
 class Estimate(BaseModel):
     symbol: Optional[str] = None
     freq: Optional[Freq] = "quarterly"
 
-class PriceTarget(BaseModel):
-    symbol: Optional[str] = None
-
-class RecommendationTrend(BaseModel):
-    symbol: Optional[str] = None
-
-class EarningsCalendar(BaseModel):
+class TimedResponse(BaseModel):
     from_timestamp: Optional[int] = None
     to_timestamp: Optional[int] = None
     symbol: Optional[str] = None
 
-
-class Dividend(BaseModel):
-    from_timestamp: Optional[int] = None
-    to_timestamp: Optional[int] = None
-    symbol: Optional[str] = None
 
 
