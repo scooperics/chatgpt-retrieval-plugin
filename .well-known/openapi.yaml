@@ -98,12 +98,10 @@ components:
       type: object
       required:
         - symbol
-        - form_types
       properties:
         form_types:
           title: Form Types
           type: array
-          required: true
           items:
             $ref: "#/components/schemas/FormType"
         symbol:
