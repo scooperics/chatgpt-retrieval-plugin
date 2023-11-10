@@ -209,6 +209,21 @@ async def revenue_estimates_main(
 
 
 @app.post(
+    "/revenue-breakdown",
+)
+async def revenue_breakdown_main(
+    request: SymbolOnly = Body(...),
+):
+    try:
+        body = finnhub_client.stock_revenue_breakdown(request.symbol)
+        return json.dumps(body)
+
+    except Exception as e:
+        print("Error:", e)
+        raise HTTPException(status_code=500, detail="Internal Service Error")
+
+
+@app.post(
     "/eps-estimates",
 )
 async def eps_estimates_main(
