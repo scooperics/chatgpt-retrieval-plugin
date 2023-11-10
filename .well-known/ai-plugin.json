@@ -2,8 +2,8 @@
   "schema_version": "v1",
   "name_for_model": "aitickerchat_document_retrieval",
   "name_for_human": "AI TICKER CHAT",
-  "description_for_model": "Plugin for searching through SEC filings and Earnings Transcripts to find answers to stock market questions and retrieve relevant information. Use when asked for stock information that could be found in any SEC filing or Earnings Transcript.  Always summarize with source URL links in every response.",
-  "description_for_human": "Retrieve USA stock insights from SEC filings as well as Earnings Call Transcripts.",
+  "description_for_model": "A retrieval API for querying and filtering SEC filing documents and Earnings Call Transcripts as well as historical actuals including financials, analyst estimates, revenue segment breakdown, candlestick data, stock quotes, insider transactions and dividends based on natural language queries and metadata.",
+  "description_for_human": "Retrieve USA stock insights from SEC filings, Transcripts and financial data including historical financial statements, analyst estimates, revenue segment breakdown, candlestick data, stock quotes, insider transactions and dividends.",
   "auth": {
     "type": "service_http",
     "authorization_type": "bearer",
@@ -11,10 +11,10 @@
   },
   "api": {
     "type": "openapi",
-    "url": "https://stock-advisor.com/.well-known/openapi.yaml",
+    "url": "https://data.aitickerchat.com/.well-known/openapi.yaml",
     "has_user_authentication":false
 },
-  "logo_url": "https://stock-advisor.com/.well-known/logo.png",
+  "logo_url": "https://data.aitickerchat.com/.well-known/logo.png",
   "contact_email": "scooper@intuitivecloudsolutions.com", 
   "legal_info_url": "https://aitickerchat.com/terms-of-service"
 }
