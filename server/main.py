@@ -149,6 +149,21 @@ async def quote_main(
 
 
 @app.post(
+    "/metrics",
+)
+async def metrics_main(
+    request: SymbolOnly = Body(...),
+):
+    try:
+        body = finnhub_client.company_basic_financials(request.symbol, "all")
+        return json.dumps(body)
+
+    except Exception as e:
+        print("Error:", e)
+        raise HTTPException(status_code=500, detail="Internal Service Error")
+
+
+@app.post(
     "/candles",
 )
 async def candles_main(
