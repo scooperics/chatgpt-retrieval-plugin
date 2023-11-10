@@ -156,7 +156,9 @@ async def metrics_main(
 ):
     try:
         body = finnhub_client.company_basic_financials(request.symbol, "all")
-        return json.dumps(body)
+        key_ratios = body["metric"]
+        print(json.dumps(key_ratios))
+        return json.dumps(key_ratios)
 
     except Exception as e:
         print("Error:", e)
@@ -231,7 +233,9 @@ async def revenue_breakdown_main(
 ):
     try:
         body = finnhub_client.stock_revenue_breakdown(request.symbol)
-        return json.dumps(body)
+        data = body["data"][0]["breakdown"]
+        print(json.dumps(data))
+        return json.dumps(data)
 
     except Exception as e:
         print("Error:", e)
