@@ -47,6 +47,8 @@ class Statement(str, Enum):
 class Freq(str, Enum):
     annual = "annual"
     quarterly = "quarterly"
+    ttm = "ttm"
+    ytd = "ytd"
 
 class FinancialStatement(BaseModel):
     statement: Statement = "ic"
