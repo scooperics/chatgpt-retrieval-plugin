@@ -164,6 +164,21 @@ async def candles_main(
 
 
 @app.post(
+    "/company-profile",
+)
+async def company_profile_main(
+    request: SymbolOnly = Body(...),
+):
+    try:
+        body = finnhub_client.company_profile2(request.symbol)
+        return json.dumps(body)
+
+    except Exception as e:
+        print("Error:", e)
+        raise HTTPException(status_code=500, detail="Internal Service Error")
+
+
+@app.post(
     "/dividend",
 )
 async def dividend_main(
