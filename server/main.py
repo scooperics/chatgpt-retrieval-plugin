@@ -170,7 +170,7 @@ async def dividend_main(
     request: TimedResponse = Body(...),
 ):
     try:
-        body = finnhub_client.stock_dividends(request.symbol, _from=datetime.utcfromtimestamp(request.from_timestamp).strftime('%Y-%m-%d'), _to=datetime.utcfromtimestamp(request.to_timestamp).strftime('%Y-%m-%d'))
+        body = finnhub_client.stock_dividends(request.symbol, _from=datetime.utcfromtimestamp(request.from_timestamp).strftime('%Y-%m-%d'), to=datetime.utcfromtimestamp(request.to_timestamp).strftime('%Y-%m-%d'))
         return json.dumps(body)
 
     except Exception as e:
