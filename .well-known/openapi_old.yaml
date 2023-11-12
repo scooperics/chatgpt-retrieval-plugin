@@ -56,52 +56,20 @@
       }
     },
     "/financial-statements": {
-      "get": {
-        "operationId": "financial-statements-get",
+      "post": {
+        "operationId": "financial-statements-post",
         "summary": "Request financial statement data in json format. Specify financial statement type, symbol and frequency and get up to 30 years of historical actuals from income statements, balance sheets or cash flow statements.",
         "x-openai-isConsequential": false,
-        "parameters": [
-          {
-            "name": "statement",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "ic",
-                "bs",
-                "cf"
-              ],
-              "default": "ic",
-              "description": "The type of financials statement. ic for income statement. bs for balance sheet. cf for cash flow."
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FinancialStatement"
+              }
             }
           },
-          {
-            "name": "freq",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "quarterly",
-                "annual",
-                "ttm",
-                "ytd"
-              ],
-              "default": "annual",
-              "description": "The frequency of data to retrieve."
-            }
-          },
-          {
-            "name": "symbol",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "The stock symbol (ticker)."
-          }
-        ],
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -133,21 +101,20 @@
       }
     },
     "/quote": {
-      "get": {
-        "operationId": "quote-get",
+      "post": {
+        "operationId": "quote-post",
         "x-openai-isConsequential": false,
         "summary": "Get real-time quote data for US stocks. Returns Current Price (c), Change (d), Percent change (dp), High (h), Low (l), Open (o), and Previous Close (pc)",
-        "parameters": [
-          {
-            "name": "symbol",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "The stock symbol (ticker)."
-          }
-        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SymbolOnly"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -179,21 +146,20 @@
       }
     },
     "/company-profile": {
-      "get": {
-        "operationId": "company-profile-get",
+      "post": {
+        "operationId": "company-profile-post",
         "x-openai-isConsequential": false,
         "summary": "Get general information of a company. Response JSON includes country, currency, exchange, market cap, shares outstanding, logo and industry.",
-        "parameters": [
-          {
-            "name": "symbol",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "The stock symbol (ticker)."
-          }
-        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SymbolOnly"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -225,21 +191,20 @@
       }
     },
     "/metrics": {
-      "get": {
-        "operationId": "metrics-get",
+      "post": {
+        "operationId": "metrics-post",
         "x-openai-isConsequential": false,
         "summary": "Get company current financial ratios such as P/E or P/FCF ratio. Includes most ratios that can be calculated from stock price and financial statements.",
-        "parameters": [
-          {
-            "name": "symbol",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "The stock symbol (ticker)."
-          }
-        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SymbolOnly"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -271,35 +236,20 @@
       }
     },
     "/metrics-time-series": {
-      "get": {
-        "operationId": "metrics-time-series-get",
+      "post": {
+        "operationId": "metrics-time-series-post",
         "x-openai-isConsequential": false,
-        "summary": "Get company annual or quarterly historical financial ratios such as P/E or P/FCF ratio. Includes most ratios that can be calculated from stock price and financial statements.  JSON response includes annual and quarterly keys and then maps key-value pair of time-series ratios",
-        "parameters": [
-          {
-            "name": "symbol",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "The stock symbol (ticker)."
-          },
-          {
-            "name": "freq",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "quarterly",
-                "annual"
-              ],
-              "default": "annual",
-              "description": "The frequency of data to retrieve."
+        "summary": "Get company annual and quarterly historical financial ratios such as P/E or P/FCF ratio. Includes most ratios that can be calculated from stock price and financial statements.  JSON response includes annual and quarterly keys and then maps key-value pair of time-series ratios",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SymbolOnly"
+              }
             }
-          }
-        ],
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -331,21 +281,20 @@
       }
     },
     "/revenue-breakdown": {
-      "get": {
-        "operationId": "revenue-breakdown-get",
+      "post": {
+        "operationId": "revenue-breakdown-post",
         "x-openai-isConsequential": false,
         "summary": "Get revenue segment breakdown by product or geography.",
-        "parameters": [
-          {
-            "name": "symbol",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "The stock symbol (ticker)."
-          }
-        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SymbolOnly"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -377,59 +326,20 @@
       }
     },
     "/candles": {
-      "get": {
-        "operationId": "candles-get",
+      "post": {
+        "operationId": "candles-post",
         "x-openai-isConsequential": false,
         "summary": "Get candlestick data (OHLCV) for stocks. Only 1 month of intraday will be returned at a time. If you need more historical intraday data, use the from_timestamp and to_timestamp params iteratively to request more data.",
-        "parameters": [
-          {
-            "name": "symbol",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "The stock symbol (ticker)."
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Candle"
+              }
+            }
           },
-          {
-            "name": "resolution",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "1",
-                "5",
-                "15",
-                "30",
-                "60",
-                "D",
-                "W",
-                "M"
-              ]
-            },
-            "default": "D",
-            "description": "Supported resolution includes 1, 5, 15, 30, 60, D, W, M.  Some timeframes might not be available depending on the exchange."
-          },
-          {
-            "name": "from_timestamp",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "int"
-            },
-            "description": "The UNIX timestamp of the interval initial value."
-          },
-          {
-            "name": "to_timestamp",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "int"
-            },
-            "description": "The UNIX timestamp of the interval end value."
-          }
-        ],
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -461,39 +371,20 @@
       }
     },
     "/dividend": {
-      "get": {
-        "operationId": "dividend-get",
+      "post": {
+        "operationId": "dividend-post",
         "x-openai-isConsequential": false,
         "summary": "Get dividends data for common stocks going back 30 years.",
-        "parameters": [
-          {
-            "name": "symbol",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "The stock symbol (ticker)."
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimedResponse"
+              }
+            }
           },
-          {
-            "name": "from_timestamp",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "int"
-            },
-            "description": "The UNIX timestamp of the interval initial value."
-          },
-          {
-            "name": "to_timestamp",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "int"
-            },
-            "description": "The UNIX timestamp of the interval end value."
-          }
-        ],
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -525,35 +416,20 @@
       }
     },
     "/revenue-estimates": {
-      "get": {
-        "operationId": "revenue-estimates-get",
+      "post": {
+        "operationId": "revenue-estimates-post",
         "summary": "Get company's revenue estimates. Return JSON includes high, low, and average estimate as well as the number of analysts.",
         "x-openai-isConsequential": false,
-        "parameters": [
-          {
-            "name": "symbol",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "The stock symbol (ticker)."
-          },
-          {
-            "name": "freq",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "quarterly",
-                "annual"
-              ],
-              "default": "annual",
-              "description": "The frequency of data to retrieve."
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Estimate"
+              }
             }
-          }
-        ],
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -585,35 +461,20 @@
       }
     },
     "/ebit-estimates": {
-      "get": {
-        "operationId": "ebit-estimates-get",
+      "post": {
+        "operationId": "ebit-estimates-post",
         "summary": "Get company's ebit estimates. Return JSON includes high, low, and average estimate as well as the number of analysts.",
         "x-openai-isConsequential": false,
-        "parameters": [
-          {
-            "name": "symbol",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "The stock symbol (ticker)."
-          },
-          {
-            "name": "freq",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "quarterly",
-                "annual"
-              ],
-              "default": "annual",
-              "description": "The frequency of data to retrieve."
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Estimate"
+              }
             }
-          }
-        ],
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -645,35 +506,20 @@
       }
     },
     "/ebitda-estimates": {
-      "get": {
-        "operationId": "ebitda-estimates-get",
+      "post": {
+        "operationId": "ebitda-estimates-post",
         "summary": "Get company's EBITDA estimates. Return JSON includes high, low, and average estimate as well as the number of analysts.",
         "x-openai-isConsequential": false,
-        "parameters": [
-          {
-            "name": "symbol",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "The stock symbol (ticker)."
-          },
-          {
-            "name": "freq",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "quarterly",
-                "annual"
-              ],
-              "default": "annual",
-              "description": "The frequency of data to retrieve."
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Estimate"
+              }
             }
-          }
-        ],
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -705,35 +551,20 @@
       }
     },
     "/eps-estimates": {
-      "get": {
-        "operationId": "eps-estimates-get",
+      "post": {
+        "operationId": "eps-estimates-post",
         "summary": "Get company's EPS estimates. Return JSON includes high, low, and average estimate as well as the number of analysts.",
         "x-openai-isConsequential": false,
-        "parameters": [
-          {
-            "name": "symbol",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "The stock symbol (ticker)."
-          },
-          {
-            "name": "freq",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string",
-              "enum": [
-                "quarterly",
-                "annual"
-              ],
-              "default": "annual",
-              "description": "The frequency of data to retrieve."
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Estimate"
+              }
             }
-          }
-        ],
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -765,21 +596,20 @@
       }
     },
     "/price-targets": {
-      "get": {
-        "operationId": "price-targets-get",
+      "post": {
+        "operationId": "price-targets-post",
         "summary": "Get latest price target consensus.",
         "x-openai-isConsequential": false,
-        "parameters": [
-          {
-            "name": "symbol",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "The stock symbol (ticker)."
-          }
-        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SymbolOnly"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -811,21 +641,20 @@
       }
     },
     "/recommendation-trends": {
-      "get": {
-        "operationId": "recommendation-trends-get",
+      "post": {
+        "operationId": "recommendation-trends-post",
         "summary": "Get latest analyst recommendation trends for a company.",
         "x-openai-isConsequential": false,
-        "parameters": [
-          {
-            "name": "symbol",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "The stock symbol (ticker)."
-          }
-        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SymbolOnly"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -857,39 +686,20 @@
       }
     },
     "/earnings-calendar": {
-      "get": {
-        "operationId": "earnings-calendar-get",
+      "post": {
+        "operationId": "earnings-calendar-post",
         "summary": "Get historical and coming earnings release. EPS and Revenue in this endpoint are non-GAAP, which means they are adjusted to exclude some one-time or unusual items. Estimates are sourced from both sell-side and buy-side analysts.",
         "x-openai-isConsequential": false,
-        "parameters": [
-          {
-            "name": "symbol",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "The stock symbol (ticker)."
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimedResponse"
+              }
+            }
           },
-          {
-            "name": "from_timestamp",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "int"
-            },
-            "description": "The UNIX timestamp of the interval initial value."
-          },
-          {
-            "name": "to_timestamp",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "int"
-            },
-            "description": "The UNIX timestamp of the interval end value."
-          }
-        ],
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -921,39 +731,20 @@
       }
     },
     "/insider-transactions": {
-      "get": {
-        "operationId": "insider-transactions-get",
+      "post": {
+        "operationId": "insider-transactions-post",
         "summary": "Company insider transactions data sourced from Form 3,4,5, SEDI and relevant companies' filings. Limit to 100 transactions per API call.",
         "x-openai-isConsequential": false,
-        "parameters": [
-          {
-            "name": "symbol",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "The stock symbol (ticker)."
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimedResponse"
+              }
+            }
           },
-          {
-            "name": "from_timestamp",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "int"
-            },
-            "description": "The UNIX timestamp of the interval initial value."
-          },
-          {
-            "name": "to_timestamp",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "int"
-            },
-            "description": "The UNIX timestamp of the interval end value."
-          }
-        ],
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -1097,6 +888,130 @@
           "xbrl_only": {
             "title": "Xbrl Only",
             "type": "boolean"
+          }
+        }
+      },
+      "FinancialStatement": {
+        "type": "object",
+        "required": [
+          "statement",
+          "freq",
+          "symbol"
+        ],
+        "properties": {
+          "statement": {
+            "type": "string",
+            "enum": [
+              "ic",
+              "bs",
+              "cf"
+            ],
+            "default": "ic",
+            "description": "The type of financials statement. ic for income statement. bs for balance sheet. cf for cash flow."
+          },
+          "freq": {
+            "type": "string",
+            "enum": [
+              "quarterly",
+              "annual",
+              "ttm",
+              "ytd"
+            ],
+            "default": "annual",
+            "description": "The frequency of data to retrieve."
+          },
+          "symbol": {
+            "type": "string",
+            "description": "The stock symbol to retrieve."
+          }
+        }
+      },
+      "Candle": {
+        "type": "object",
+        "required": [
+          "symbol",
+          "resolution",
+          "from_timestamp",
+          "to_timestamp"
+        ],
+        "properties": {
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "1",
+              "5",
+              "15",
+              "30",
+              "60",
+              "D",
+              "W",
+              "M"
+            ],
+            "default": "D",
+            "description": "Supported resolution includes 1, 5, 15, 30, 60, D, W, M.  Some timeframes might not be available depending on the exchange."
+          },
+          "from_timestamp": {
+            "type": "int",
+            "description": "The UNIX timestamp of the interval initial value."
+          },
+          "to_timestamp": {
+            "type": "int",
+            "description": "The UNIX timestamp of the interval end value."
+          },
+          "symbol": {
+            "type": "string"
+          }
+        }
+      },
+      "TimedResponse": {
+        "type": "object",
+        "required": [
+          "symbol",
+          "from_timestamp",
+          "to_timestamp"
+        ],
+        "properties": {
+          "from_timestamp": {
+            "type": "int",
+            "description": "The UNIX timestamp of the interval initial value."
+          },
+          "to_timestamp": {
+            "type": "int",
+            "description": "The UNIX timestamp of the interval end value."
+          },
+          "symbol": {
+            "type": "string"
+          }
+        }
+      },
+      "Estimate": {
+        "type": "object",
+        "required": [
+          "symbol"
+        ],
+        "properties": {
+          "freq": {
+            "type": "string",
+            "enum": [
+              "annual",
+              "quarterly"
+            ],
+            "default": "quarterly",
+            "description": "Frequency of estimates."
+          },
+          "symbol": {
+            "type": "string"
+          }
+        }
+      },
+      "SymbolOnly": {
+        "type": "object",
+        "required": [
+          "symbol"
+        ],
+        "properties": {
+          "symbol": {
+            "type": "string"
           }
         }
       },
