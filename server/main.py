@@ -20,6 +20,7 @@ from models.api import (
     Candle,
     Estimate,
     TimedResponse,
+    JsonResponse,
 )
 from datastore.factory import get_datastore
 from services.file import get_document_from_file
@@ -126,7 +127,7 @@ async def financial_statements_main(
 ):
     try:
         body = finnhub_client.financials(request.symbol, request.statement, request.freq)
-        return json.dumps(body)
+        return JsonResponse(results=json.dumps(body))
 
     except Exception as e:
         print("Error:", e)
@@ -141,7 +142,7 @@ async def quote_main(
 ):
     try:
         body = finnhub_client.quote(request.symbol)
-        return json.dumps(body)
+        return JsonResponse(results=json.dumps(body))
 
     except Exception as e:
         print("Error:", e)
@@ -158,7 +159,24 @@ async def metrics_main(
         body = finnhub_client.company_basic_financials(request.symbol, "all")
         key_ratios = body["metric"]
         print(json.dumps(key_ratios))
-        return json.dumps(key_ratios)
+        return JsonResponse(results=json.dumps(key_ratios))
+
+    except Exception as e:
+        print("Error:", e)
+        raise HTTPException(status_code=500, detail="Internal Service Error")
+
+
+@app.post(
+    "/metrics-time-series",
+)
+async def metrics_time_series_main(
+    request: SymbolOnly = Body(...),
+):
+    try:
+        body = finnhub_client.company_basic_financials(request.symbol, "all")
+        key_ratios = body["series"]["annual"]
+        print(json.dumps(key_ratios))
+        return JsonResponse(results=json.dumps(key_ratios))
 
     except Exception as e:
         print("Error:", e)
@@ -173,7 +191,7 @@ async def candles_main(
 ):
     try:
         body = finnhub_client.stock_candles(request.symbol, request.resolution, request.from_timestamp, request.to_timestamp)
-        return json.dumps(body)
+        return JsonResponse(results=json.dumps(body))
 
     except Exception as e:
         print("Error:", e)
@@ -188,7 +206,7 @@ async def company_profile_main(
 ):
     try:
         body = finnhub_client.company_profile2(request.symbol)
-        return json.dumps(body)
+        return JsonResponse(results=json.dumps(body))
 
     except Exception as e:
         print("Error:", e)
@@ -203,7 +221,7 @@ async def dividend_main(
 ):
     try:
         body = finnhub_client.stock_dividends(request.symbol, _from=datetime.utcfromtimestamp(request.from_timestamp).strftime('%Y-%m-%d'), to=datetime.utcfromtimestamp(request.to_timestamp).strftime('%Y-%m-%d'))
-        return json.dumps(body)
+        return JsonResponse(results=json.dumps(body))
 
     except Exception as e:
         print("Error:", e)
@@ -218,7 +236,7 @@ async def revenue_estimates_main(
 ):
     try:
         body = finnhub_client.company_revenue_estimates(request.symbol, request.freq)
-        return json.dumps(body)
+        return JsonResponse(results=json.dumps(body))
 
     except Exception as e:
         print("Error:", e)
@@ -235,7 +253,7 @@ async def revenue_breakdown_main(
         body = finnhub_client.stock_revenue_breakdown(request.symbol)
         data = body["data"][0]["breakdown"]
         print(json.dumps(data))
-        return json.dumps(data)
+        return JsonResponse(results=json.dumps(data))
 
     except Exception as e:
         print("Error:", e)
@@ -250,7 +268,7 @@ async def eps_estimates_main(
 ):
     try:
         body = finnhub_client.company_eps_estimates(request.symbol, request.freq)
-        return json.dumps(body)
+        return JsonResponse(results=json.dumps(body))
 
     except Exception as e:
         print("Error:", e)
@@ -265,7 +283,7 @@ async def ebitda_estimates_main(
 ):
     try:
         body = finnhub_client.company_ebitda_estimates(request.symbol, request.freq)
-        return json.dumps(body)
+        return JsonResponse(results=json.dumps(body))
 
     except Exception as e:
         print("Error:", e)
@@ -280,7 +298,7 @@ async def ebit_estimates_main(
 ):
     try:
         body = finnhub_client.company_ebit_estimates(request.symbol, request.freq)
-        return json.dumps(body)
+        return JsonResponse(results=json.dumps(body))
 
     except Exception as e:
         print("Error:", e)
@@ -295,7 +313,7 @@ async def price_targets_main(
 ):
     try:
         body = finnhub_client.price_target(request.symbol)
-        return json.dumps(body)
+        return JsonResponse(results=json.dumps(body))
 
     except Exception as e:
         print("Error:", e)
@@ -310,7 +328,7 @@ async def recommendation_trends_main(
 ):
     try:
         body = finnhub_client.recommendation_trends(request.symbol)
-        return json.dumps(body)
+        return JsonResponse(results=json.dumps(body))
 
     except Exception as e:
         print("Error:", e)
@@ -324,7 +342,7 @@ async def earnings_calendar_main(
 ):
     try:
         body = finnhub_client.earnings_calendar(_from=datetime.utcfromtimestamp(request.from_timestamp).strftime('%Y-%m-%d'), to=datetime.utcfromtimestamp(request.to_timestamp).strftime('%Y-%m-%d'), symbol=request.symbol)
-        return json.dumps(body)
+        return JsonResponse(results=json.dumps(body))
 
     except Exception as e:
         print("Error:", e)
@@ -339,7 +357,7 @@ async def insider_transactions(
 ):
     try:
         body = finnhub_client.stock_insider_transactions(request.symbol, datetime.utcfromtimestamp(request.from_timestamp).strftime('%Y-%m-%d'), datetime.utcfromtimestamp(request.to_timestamp).strftime('%Y-%m-%d'))
-        return json.dumps(body)
+        return JsonResponse(results=json.dumps(body))
 
     except Exception as e:
         print("Error:", e)
