@@ -154,6 +154,13 @@ async def metrics_main(
         raise HTTPException(status_code=500, detail="Internal Service Error")
 
 
+# Function to sort each list of dictionaries by the 'period' key
+def sort_by_period(data):
+    for key in data:
+        data[key].sort(key=lambda x: x['period'])
+    return data
+
+
 @app.get(
     "/metrics-time-series",
 )
@@ -164,9 +171,9 @@ async def metrics_time_series_main(
     try:
         body = finnhub_client.company_basic_financials(symbol, "all")
         if freq == 'quarterly':
-            key_ratios = body["series"]["quarterly"]
+            key_ratios = sort_by_period(body["series"]["quarterly"])
         else:
-            key_ratios = body["series"]["annual"]
+            key_ratios = sort_by_period(body["series"]["annual"])
         print(json.dumps(key_ratios))
         return JsonResponse(results=json.dumps(key_ratios))
 
