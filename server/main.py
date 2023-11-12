@@ -200,7 +200,7 @@ async def company_profile_main(
     symbol: str = Query(...),
 ):
     try:
-        body = finnhub_client.company_profile2(symbol)
+        body = finnhub_client.company_profile(symbol=symbol)
         return JsonResponse(results=json.dumps(body))
 
     except Exception as e:
@@ -208,9 +208,8 @@ async def company_profile_main(
         raise HTTPException(status_code=500, detail="Internal Service Error")
 
 
-@app.get(
-    "/dividend",
-)
+
+@app.get("/dividend")
 async def dividend_main(
     symbol: str = Query(...),
     from_timestamp: int = Query(...),
@@ -219,10 +218,12 @@ async def dividend_main(
     try:
         body = finnhub_client.stock_dividends(symbol, _from=datetime.utcfromtimestamp(from_timestamp).strftime('%Y-%m-%d'), to=datetime.utcfromtimestamp(to_timestamp).strftime('%Y-%m-%d'))
         return JsonResponse(results=json.dumps(body))
-
+    except ValueError as ve:
+        print(f"Timestamp conversion error: {ve}")
+        raise HTTPException(status_code=400, detail="Invalid timestamp format")
     except Exception as e:
-        print("Error:", e)
-        raise HTTPException(status_code=500, detail="Internal Service Error")
+        print(f"Error in dividend_main: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get(
@@ -230,7 +231,7 @@ async def dividend_main(
 )
 async def revenue_estimates_main(
     symbol: str = Query(...),
-    freq: int = Query(...),
+    freq: str = Query(...),
 ):
     try:
         body = finnhub_client.company_revenue_estimates(symbol, freq)
@@ -263,7 +264,7 @@ async def revenue_breakdown_main(
 )
 async def eps_estimates_main(
     symbol: str = Query(...),
-    freq: int = Query(...),
+    freq: str = Query(...),
 ):
     try:
         body = finnhub_client.company_eps_estimates(symbol, freq)
@@ -279,7 +280,7 @@ async def eps_estimates_main(
 )
 async def ebitda_estimates_main(
     symbol: str = Query(...),
-    freq: int = Query(...),
+    freq: str = Query(...),
 ):
     try:
         body = finnhub_client.company_ebitda_estimates(symbol, freq)
@@ -295,7 +296,7 @@ async def ebitda_estimates_main(
 )
 async def ebit_estimates_main(
     symbol: str = Query(...),
-    freq: int = Query(...),
+    freq: str = Query(...),
 ):
     try:
         body = finnhub_client.company_ebit_estimates(symbol, freq)
