@@ -7,11 +7,11 @@
   },
   "servers": [
     {
-      "url": "https://chat.aitickerchat.com"
+      "url": "https://data.aitickerchat.com"
     }
   ],
   "paths": {
-    "/api/v1/query": {
+    "/query": {
       "post": {
         "summary": "Accepts search query objects with query, filter, optional sort_order and limit. Break down complex questions into sub-questions. Required filters include symbol and form_types with optional fiscal_year, fiscal_quarter. Use sort_order desc and limit 1 to find most recent document.",
         "operationId": "query-post",
@@ -50,14 +50,15 @@
         },
         "security": [
           {
-            "oauth2": []
+            "HTTPBearer": []
           }
-        ],
+        ]
       }
     },
-    "/api/v1/financial-statements": {
+    "/financial-statements": {
       "get": {
         "operationId": "financial-statements-get",
+        "x-openai-isConsequential": false,
         "summary": "Request financial statement data in json format. Specify financial statement type, symbol and frequency and get up to 30 years of historical actuals from income statements, balance sheets or cash flow statements.",
         "parameters": [
           {
@@ -103,14 +104,15 @@
         ],
         "security": [
           {
-            "oauth2": []
+            "HTTPBearer": []
           }
-        ],
+        ]
       }
     },
-    "/api/v1/quote": {
+    "/quote": {
       "get": {
         "operationId": "quote-get",
+        "x-openai-isConsequential": false,
         "summary": "Get real-time quote data for US stocks. Returns Current Price (c), Change (d), Percent change (dp), High (h), Low (l), Open (o), and Previous Close (pc)",
         "parameters": [
           {
@@ -125,14 +127,15 @@
         ],
         "security": [
           {
-            "oauth2": []
+            "HTTPBearer": []
           }
-        ],
+        ]
       }
     },
-    "/api/v1/company-profile": {
+    "/company-profile": {
       "get": {
         "operationId": "company-profile-get",
+        "x-openai-isConsequential": false,
         "summary": "Get general information of a company. Response JSON includes country, currency, exchange, market cap, shares outstanding, logo and industry.",
         "parameters": [
           {
@@ -147,14 +150,15 @@
         ],
         "security": [
           {
-            "oauth2": []
+            "HTTPBearer": []
           }
-        ],
+        ]
       }
     },
-    "/api/v1/metrics": {
+    "/metrics": {
       "get": {
         "operationId": "metrics-get",
+        "x-openai-isConsequential": false,
         "summary": "Get company current financial ratios such as P/E or P/FCF ratio. Includes most ratios that can be calculated from stock price and financial statements.",
         "parameters": [
           {
@@ -169,14 +173,15 @@
         ],
         "security": [
           {
-            "oauth2": []
+            "HTTPBearer": []
           }
-        ],
+        ]
       }
     },
-    "/api/v1/metrics-time-series": {
+    "/metrics-time-series": {
       "get": {
         "operationId": "metrics-time-series-get",
+        "x-openai-isConsequential": false,
         "summary": "Get company annual or quarterly historical financial ratios such as P/E or P/FCF ratio. Includes most ratios that can be calculated from stock price and financial statements.  JSON response includes annual and quarterly keys and then maps key-value pair of time-series ratios",
         "parameters": [
           {
@@ -205,14 +210,15 @@
         ],
         "security": [
           {
-            "oauth2": []
+            "HTTPBearer": []
           }
-        ],
+        ]
       }
     },
-    "/api/v1/revenue-breakdown": {
+    "/revenue-breakdown": {
       "get": {
         "operationId": "revenue-breakdown-get",
+        "x-openai-isConsequential": false,
         "summary": "Get revenue segment breakdown by product or geography.",
         "parameters": [
           {
@@ -227,14 +233,15 @@
         ],
         "security": [
           {
-            "oauth2": []
+            "HTTPBearer": []
           }
-        ],
+        ]
       }
     },
-    "/api/v1/candles": {
+    "/candles": {
       "get": {
         "operationId": "candles-get",
+        "x-openai-isConsequential": false,
         "summary": "Get candlestick data (OHLCV) for stocks. Only 1 month of intraday will be returned at a time. If you need more historical intraday data, use the from_timestamp and to_timestamp params iteratively to request more data.",
         "parameters": [
           {
@@ -287,14 +294,15 @@
         ],
         "security": [
           {
-            "oauth2": []
+            "HTTPBearer": []
           }
-        ],
+        ]
       }
     },
-    "/api/v1/dividend": {
+    "/dividend": {
       "get": {
         "operationId": "dividend-get",
+        "x-openai-isConsequential": false,
         "summary": "Get dividends data for common stocks going back 30 years.",
         "parameters": [
           {
@@ -327,14 +335,15 @@
         ],
         "security": [
           {
-            "oauth2": []
+            "HTTPBearer": []
           }
-        ],
+        ]
       }
     },
-    "/api/v1/revenue-estimates": {
+    "/revenue-estimates": {
       "get": {
         "operationId": "revenue-estimates-get",
+        "x-openai-isConsequential": false,
         "summary": "Get company's revenue estimates. Return JSON includes high, low, and average estimate as well as the number of analysts.",
         "parameters": [
           {
@@ -363,14 +372,15 @@
         ],
         "security": [
           {
-            "oauth2": []
+            "HTTPBearer": []
           }
-        ],
+        ]
       }
     },
-    "/api/v1/ebit-estimates": {
+    "/ebit-estimates": {
       "get": {
         "operationId": "ebit-estimates-get",
+        "x-openai-isConsequential": false,
         "summary": "Get company's ebit estimates. Return JSON includes high, low, and average estimate as well as the number of analysts.",
         "parameters": [
           {
@@ -399,14 +409,15 @@
         ],
         "security": [
           {
-            "oauth2": []
+            "HTTPBearer": []
           }
-        ],
+        ]
       }
     },
-    "/api/v1/ebitda-estimates": {
+    "/ebitda-estimates": {
       "get": {
         "operationId": "ebitda-estimates-get",
+        "x-openai-isConsequential": false,
         "summary": "Get company's EBITDA estimates. Return JSON includes high, low, and average estimate as well as the number of analysts.",
         "parameters": [
           {
@@ -435,14 +446,15 @@
         ],
         "security": [
           {
-            "oauth2": []
+            "HTTPBearer": []
           }
-        ],
+        ]
       }
     },
-    "/api/v1/eps-estimates": {
+    "/eps-estimates": {
       "get": {
         "operationId": "eps-estimates-get",
+        "x-openai-isConsequential": false,
         "summary": "Get company's EPS estimates. Return JSON includes high, low, and average estimate as well as the number of analysts.",
         "parameters": [
           {
@@ -471,14 +483,15 @@
         ],
         "security": [
           {
-            "oauth2": []
+            "HTTPBearer": []
           }
-        ],
+        ]
       }
     },
-    "/api/v1/price-targets": {
+    "/price-targets": {
       "get": {
         "operationId": "price-targets-get",
+        "x-openai-isConsequential": false,
         "summary": "Get latest price target consensus.",
         "parameters": [
           {
@@ -493,14 +506,15 @@
         ],
         "security": [
           {
-            "oauth2": []
+            "HTTPBearer": []
           }
-        ],
+        ]
       }
     },
-    "/api/v1/recommendation-trends": {
+    "/recommendation-trends": {
       "get": {
         "operationId": "recommendation-trends-get",
+        "x-openai-isConsequential": false,
         "summary": "Get latest analyst recommendation trends for a company.",
         "parameters": [
           {
@@ -515,14 +529,15 @@
         ],
         "security": [
           {
-            "oauth2": []
+            "HTTPBearer": []
           }
-        ],
+        ]
       }
     },
-    "/api/v1/earnings-calendar": {
+    "/earnings-calendar": {
       "get": {
         "operationId": "earnings-calendar-get",
+        "x-openai-isConsequential": false,
         "summary": "Get historical and coming earnings release. EPS and Revenue in this endpoint are non-GAAP, which means they are adjusted to exclude some one-time or unusual items. Estimates are sourced from both sell-side and buy-side analysts.",
         "parameters": [
           {
@@ -555,14 +570,15 @@
         ],
         "security": [
           {
-            "oauth2": []
+            "HTTPBearer": []
           }
-        ],
+        ]
       }
     },
-    "/api/v1/insider-transactions": {
+    "/insider-transactions": {
       "get": {
         "operationId": "insider-transactions-get",
+        "x-openai-isConsequential": false,
         "summary": "Company insider transactions data sourced from Form 3,4,5, SEDI and relevant companies' filings. Limit to 100 transactions per API call.",
         "parameters": [
           {
@@ -595,9 +611,9 @@
         ],
         "security": [
           {
-            "oauth2": []
+            "HTTPBearer": []
           }
-        ],
+        ]
       }
     }
   },
@@ -884,8 +900,9 @@
       }
     },
     "securitySchemes": {
-      "oauth2": {
-        "type": "oauth2"
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
       }
     }
   }
