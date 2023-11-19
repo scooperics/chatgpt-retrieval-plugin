@@ -10,6 +10,7 @@ class Source(str, Enum):
 
 class FormType(str, Enum):
     earnings_transcript = "earnings_transcript"
+    other_transcript = "other_transcript"
     _8_K = "8-K"
     _10_K = "10-K"
     _10_Q = "10-Q"
