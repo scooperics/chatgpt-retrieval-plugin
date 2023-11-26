@@ -340,6 +340,37 @@
         ]
       }
     },
+    "/api/v1/price-metric": {
+      "get": {
+        "operationId": "price-metric-get",
+        "summary": "Get company price performance statistics such as 52-week high/low, YTD return, EMAs, SMAs and RSI.",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The stock symbol (ticker)."
+          },
+          {
+            "name": "timestamp",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "The UNIX timestamp of the end of the week for which you want price metrics."
+          }
+        ],
+        "security": [
+          {
+            "oauth2": []
+          }
+        ]
+      }
+    },
     "/api/v1/revenue-estimates": {
       "get": {
         "operationId": "revenue-estimates-get",

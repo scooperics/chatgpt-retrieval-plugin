@@ -47,18 +47,12 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        }
       }
     },
     "/financial-statements": {
       "get": {
         "operationId": "financial-statements-get",
-        "x-openai-isConsequential": false,
         "summary": "Request financial statement data in json format. Specify financial statement type, symbol and frequency and get up to 30 years of historical actuals from income statements, balance sheets or cash flow statements.",
         "parameters": [
           {
@@ -101,18 +95,12 @@
             },
             "description": "The stock symbol (ticker)."
           }
-        ],
-        "security": [
-          {
-            "HTTPBearer": []
-          }
         ]
       }
     },
     "/quote": {
       "get": {
         "operationId": "quote-get",
-        "x-openai-isConsequential": false,
         "summary": "Get real-time quote data for US stocks. Returns Current Price (c), Change (d), Percent change (dp), High (h), Low (l), Open (o), and Previous Close (pc)",
         "parameters": [
           {
@@ -124,18 +112,12 @@
             },
             "description": "The stock symbol (ticker)."
           }
-        ],
-        "security": [
-          {
-            "HTTPBearer": []
-          }
         ]
       }
     },
     "/company-profile": {
       "get": {
         "operationId": "company-profile-get",
-        "x-openai-isConsequential": false,
         "summary": "Get general information of a company. Response JSON includes country, currency, exchange, market cap, shares outstanding, logo and industry.",
         "parameters": [
           {
@@ -147,18 +129,12 @@
             },
             "description": "The stock symbol (ticker)."
           }
-        ],
-        "security": [
-          {
-            "HTTPBearer": []
-          }
         ]
       }
     },
     "/metrics": {
       "get": {
         "operationId": "metrics-get",
-        "x-openai-isConsequential": false,
         "summary": "Get company current financial ratios such as P/E or P/FCF ratio. Includes most ratios that can be calculated from stock price and financial statements.",
         "parameters": [
           {
@@ -170,18 +146,12 @@
             },
             "description": "The stock symbol (ticker)."
           }
-        ],
-        "security": [
-          {
-            "HTTPBearer": []
-          }
         ]
       }
     },
     "/metrics-time-series": {
       "get": {
         "operationId": "metrics-time-series-get",
-        "x-openai-isConsequential": false,
         "summary": "Get company annual or quarterly historical financial ratios such as P/E or P/FCF ratio. Includes most ratios that can be calculated from stock price and financial statements.  JSON response includes annual and quarterly keys and then maps key-value pair of time-series ratios",
         "parameters": [
           {
@@ -207,18 +177,12 @@
               "description": "The frequency of data to retrieve."
             }
           }
-        ],
-        "security": [
-          {
-            "HTTPBearer": []
-          }
         ]
       }
     },
     "/revenue-breakdown": {
       "get": {
         "operationId": "revenue-breakdown-get",
-        "x-openai-isConsequential": false,
         "summary": "Get revenue segment breakdown by product or geography.",
         "parameters": [
           {
@@ -230,18 +194,12 @@
             },
             "description": "The stock symbol (ticker)."
           }
-        ],
-        "security": [
-          {
-            "HTTPBearer": []
-          }
         ]
       }
     },
     "/candles": {
       "get": {
         "operationId": "candles-get",
-        "x-openai-isConsequential": false,
         "summary": "Get candlestick data (OHLCV) for stocks. Only 1 month of intraday will be returned at a time. If you need more historical intraday data, use the from_timestamp and to_timestamp params iteratively to request more data.",
         "parameters": [
           {
@@ -291,18 +249,12 @@
             },
             "description": "The UNIX timestamp of the interval end value."
           }
-        ],
-        "security": [
-          {
-            "HTTPBearer": []
-          }
         ]
       }
     },
     "/dividend": {
       "get": {
         "operationId": "dividend-get",
-        "x-openai-isConsequential": false,
         "summary": "Get dividends data for common stocks going back 30 years.",
         "parameters": [
           {
@@ -332,10 +284,31 @@
             },
             "description": "The UNIX timestamp of the interval end value."
           }
-        ],
-        "security": [
+        ]
+      }
+    },
+    "/price-metric": {
+      "get": {
+        "operationId": "price-metric-get",
+        "summary": "Get company price performance statistics such as 52-week high/low, YTD return, EMAs, SMAs and RSI.",
+        "parameters": [
           {
-            "HTTPBearer": []
+            "name": "symbol",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The stock symbol (ticker)."
+          },
+          {
+            "name": "timestamp",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "The UNIX timestamp of the end of the week for which you want price metrics."
           }
         ]
       }
@@ -343,7 +316,6 @@
     "/revenue-estimates": {
       "get": {
         "operationId": "revenue-estimates-get",
-        "x-openai-isConsequential": false,
         "summary": "Get company's revenue estimates. Return JSON includes high, low, and average estimate as well as the number of analysts.",
         "parameters": [
           {
@@ -369,18 +341,12 @@
               "description": "The frequency of data to retrieve."
             }
           }
-        ],
-        "security": [
-          {
-            "HTTPBearer": []
-          }
         ]
       }
     },
     "/ebit-estimates": {
       "get": {
         "operationId": "ebit-estimates-get",
-        "x-openai-isConsequential": false,
         "summary": "Get company's ebit estimates. Return JSON includes high, low, and average estimate as well as the number of analysts.",
         "parameters": [
           {
@@ -406,18 +372,12 @@
               "description": "The frequency of data to retrieve."
             }
           }
-        ],
-        "security": [
-          {
-            "HTTPBearer": []
-          }
         ]
       }
     },
     "/ebitda-estimates": {
       "get": {
         "operationId": "ebitda-estimates-get",
-        "x-openai-isConsequential": false,
         "summary": "Get company's EBITDA estimates. Return JSON includes high, low, and average estimate as well as the number of analysts.",
         "parameters": [
           {
@@ -443,18 +403,12 @@
               "description": "The frequency of data to retrieve."
             }
           }
-        ],
-        "security": [
-          {
-            "HTTPBearer": []
-          }
         ]
       }
     },
     "/eps-estimates": {
       "get": {
         "operationId": "eps-estimates-get",
-        "x-openai-isConsequential": false,
         "summary": "Get company's EPS estimates. Return JSON includes high, low, and average estimate as well as the number of analysts.",
         "parameters": [
           {
@@ -480,18 +434,12 @@
               "description": "The frequency of data to retrieve."
             }
           }
-        ],
-        "security": [
-          {
-            "HTTPBearer": []
-          }
         ]
       }
     },
     "/price-targets": {
       "get": {
         "operationId": "price-targets-get",
-        "x-openai-isConsequential": false,
         "summary": "Get latest price target consensus.",
         "parameters": [
           {
@@ -503,18 +451,12 @@
             },
             "description": "The stock symbol (ticker)."
           }
-        ],
-        "security": [
-          {
-            "HTTPBearer": []
-          }
         ]
       }
     },
     "/recommendation-trends": {
       "get": {
         "operationId": "recommendation-trends-get",
-        "x-openai-isConsequential": false,
         "summary": "Get latest analyst recommendation trends for a company.",
         "parameters": [
           {
@@ -526,18 +468,12 @@
             },
             "description": "The stock symbol (ticker)."
           }
-        ],
-        "security": [
-          {
-            "HTTPBearer": []
-          }
         ]
       }
     },
     "/earnings-calendar": {
       "get": {
         "operationId": "earnings-calendar-get",
-        "x-openai-isConsequential": false,
         "summary": "Get historical and coming earnings release. EPS and Revenue in this endpoint are non-GAAP, which means they are adjusted to exclude some one-time or unusual items. Estimates are sourced from both sell-side and buy-side analysts.",
         "parameters": [
           {
@@ -567,18 +503,12 @@
             },
             "description": "The UNIX timestamp of the interval end value."
           }
-        ],
-        "security": [
-          {
-            "HTTPBearer": []
-          }
         ]
       }
     },
     "/insider-transactions": {
       "get": {
         "operationId": "insider-transactions-get",
-        "x-openai-isConsequential": false,
         "summary": "Company insider transactions data sourced from Form 3,4,5, SEDI and relevant companies' filings. Limit to 100 transactions per API call.",
         "parameters": [
           {
@@ -607,11 +537,6 @@
               "type": "integer"
             },
             "description": "The UNIX timestamp of the interval end value."
-          }
-        ],
-        "security": [
-          {
-            "HTTPBearer": []
           }
         ]
       }
@@ -897,12 +822,6 @@
             "type": "string"
           }
         }
-      }
-    },
-    "securitySchemes": {
-      "HTTPBearer": {
-        "type": "http",
-        "scheme": "bearer"
       }
     }
   }

@@ -121,7 +121,6 @@ async def financial_statements_main(
         raise HTTPException(status_code=500, detail="Internal Service Error")
 
 
-
 @app.get(
     "/quote",
 )
@@ -224,6 +223,23 @@ async def dividend_main(
 ):
     try:
         body = finnhub_client.stock_dividends(symbol, _from=datetime.utcfromtimestamp(from_timestamp).strftime('%Y-%m-%d'), to=datetime.utcfromtimestamp(to_timestamp).strftime('%Y-%m-%d'))
+        return JsonResponse(results=json.dumps(body))
+    except ValueError as ve:
+        print(f"Timestamp conversion error: {ve}")
+        raise HTTPException(status_code=400, detail="Invalid timestamp format")
+    except Exception as e:
+        print(f"Error in dividend_main: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+@app.get("/price-metric")
+async def price_metric(
+    symbol: str = Query(...),
+    timestamp: int = Query(...)
+):
+    try:
+        body = finnhub_client.price_metrics(symbol, datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d'))
         return JsonResponse(results=json.dumps(body))
     except ValueError as ve:
         print(f"Timestamp conversion error: {ve}")
