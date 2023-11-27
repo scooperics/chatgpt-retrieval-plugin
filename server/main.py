@@ -6,6 +6,10 @@ from fastapi import FastAPI, File, Form, HTTPException, Depends, Body, UploadFil
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from fastapi import Query
+import pandas as pd
+import pandas_ta as ta
+import time
+
 
 import finnhub
 from datetime import datetime, timedelta
@@ -105,6 +109,64 @@ async def query_main(
             request.queries,
         )
         return QueryResponse(results=results)
+    except Exception as e:
+        print("Error:", e)
+        raise HTTPException(status_code=500, detail="Internal Service Error")
+
+
+@app.get(
+    "/technicals"
+)
+async def technicals_main(
+    symbol: str = Query(...)
+):
+    try:
+
+        # Convert datetime objects to Unix timestamps
+        start_date = int((datetime.utcnow() - timedelta(days=60)).timestamp())
+        end_date = int(datetime.utcnow().timestamp())
+
+        # Use Unix timestamps in the API call
+        data = finnhub_client.stock_candles(symbol, 'D', start_date, end_date)
+
+        # Convert to DataFrame
+        df = pd.DataFrame(data)
+        df['t'] = pd.to_datetime(df['t'], unit='s')  # Convert 't' to a datetime format
+        df.set_index('t', inplace=True)
+
+        # Calculate technical indicators
+        # Moving Averages
+        df['SMA_10'] = ta.sma(df['c'], length=10)
+        df['EMA_10'] = ta.ema(df['c'], length=10)
+
+        # Relative Strength Index (RSI)
+        df['RSI_14'] = ta.rsi(df['c'], length=14)
+
+        # Moving Average Convergence Divergence (MACD)
+        macd = ta.macd(df['c'])
+        df = pd.concat([df, macd], axis=1)
+
+        # Bollinger Bands
+        bollinger = ta.bbands(df['c'])
+        df = pd.concat([df, bollinger], axis=1)
+
+        # Stochastic Oscillator
+        stoch = ta.stoch(df['h'], df['l'], df['c'])
+        df = pd.concat([df, stoch], axis=1)
+
+        # ADX (Average Directional Index)
+        adx = ta.adx(df['h'], df['l'], df['c'])
+        df = pd.concat([df, adx], axis=1)
+
+        # Convert datetime columns to string format
+        df.index = df.index.strftime('%Y-%m-%d %H:%M:%S')
+
+        # Convert DataFrame to JSON using Pandas' to_json
+        json_response_data = df[::-1].to_json(orient='index')
+
+        print(json_response_data)
+        return JsonResponse(results=json_response_data)
+
     except Exception as e:
         print("Error:", e)
         raise HTTPException(status_code=500, detail="Internal Service Error")

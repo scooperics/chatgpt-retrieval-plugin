@@ -67,6 +67,23 @@
         ]
       }
     },
+    "/technicals": {
+      "get": {
+        "operationId": "technicals_get",
+        "summary": "Request all the data necessary to do technical analysis of a company and find ideal entry and exit price points.  This will return a JSON with the candle data and all necessary technicals.",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The stock symbol (ticker)."
+          }
+        ]
+      }
+    },
     "/financial-statements": {
       "get": {
         "operationId": "financial_statements_get",
