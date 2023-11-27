@@ -14,7 +14,7 @@
     "/query": {
       "post": {
         "summary": "Accepts search query objects with query, filter, optional sort_order and limit. Break down complex questions into sub-questions. Required filters include symbol and form_types with optional fiscal_year, fiscal_quarter. Use sort_order desc and limit 1 to find most recent document.",
-        "operationId": "query-post",
+        "operationId": "query_post",
         "x-openai-isConsequential": false,
         "requestBody": {
           "content": {
@@ -50,9 +50,26 @@
         }
       }
     },
+    "/analyze": {
+      "get": {
+        "operationId": "analyze_get",
+        "summary": "Request all the data necessary to do fundamental analysis of a company.  This will return a JSON with the document_results (management discussions on top risks, opportunities and forward guidance) and all other data.",
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The stock symbol (ticker)."
+          }
+        ]
+      }
+    },
     "/financial-statements": {
       "get": {
-        "operationId": "financial-statements-get",
+        "operationId": "financial_statements_get",
         "summary": "Request financial statement data in json format. Specify financial statement type, symbol and frequency and get up to 30 years of historical actuals from income statements, balance sheets or cash flow statements.",
         "parameters": [
           {
@@ -100,7 +117,7 @@
     },
     "/quote": {
       "get": {
-        "operationId": "quote-get",
+        "operationId": "quote_get",
         "summary": "Get real-time quote data for US stocks. Returns Current Price (c), Change (d), Percent change (dp), High (h), Low (l), Open (o), and Previous Close (pc)",
         "parameters": [
           {
@@ -117,7 +134,7 @@
     },
     "/company-profile": {
       "get": {
-        "operationId": "company-profile-get",
+        "operationId": "company_profile_get",
         "summary": "Get general information of a company. Response JSON includes country, currency, exchange, market cap, shares outstanding, logo and industry.",
         "parameters": [
           {
@@ -134,7 +151,7 @@
     },
     "/metrics": {
       "get": {
-        "operationId": "metrics-get",
+        "operationId": "metrics_get",
         "summary": "Get company current financial ratios such as P/E or P/FCF ratio. Includes most ratios that can be calculated from stock price and financial statements.",
         "parameters": [
           {
@@ -151,7 +168,7 @@
     },
     "/metrics-time-series": {
       "get": {
-        "operationId": "metrics-time-series-get",
+        "operationId": "metrics_time_series_get",
         "summary": "Get company annual or quarterly historical financial ratios such as P/E or P/FCF ratio. Includes most ratios that can be calculated from stock price and financial statements.  JSON response includes annual and quarterly keys and then maps key-value pair of time-series ratios",
         "parameters": [
           {
@@ -182,7 +199,7 @@
     },
     "/revenue-breakdown": {
       "get": {
-        "operationId": "revenue-breakdown-get",
+        "operationId": "revenue_breakdown_get",
         "summary": "Get revenue segment breakdown by product or geography.",
         "parameters": [
           {
@@ -199,7 +216,7 @@
     },
     "/candles": {
       "get": {
-        "operationId": "candles-get",
+        "operationId": "candles_get",
         "summary": "Get candlestick data (OHLCV) for stocks. Only 1 month of intraday will be returned at a time. If you need more historical intraday data, use the from_timestamp and to_timestamp params iteratively to request more data.",
         "parameters": [
           {
@@ -254,7 +271,7 @@
     },
     "/dividend": {
       "get": {
-        "operationId": "dividend-get",
+        "operationId": "dividend_get",
         "summary": "Get dividends data for common stocks going back 30 years.",
         "parameters": [
           {
@@ -289,7 +306,7 @@
     },
     "/price-metric": {
       "get": {
-        "operationId": "price-metric-get",
+        "operationId": "price_metric_get",
         "summary": "Get company price performance statistics such as 52-week high/low, YTD return, EMAs, SMAs and RSI.",
         "parameters": [
           {
@@ -315,7 +332,7 @@
     },
     "/revenue-estimates": {
       "get": {
-        "operationId": "revenue-estimates-get",
+        "operationId": "revenue_estimates_get",
         "summary": "Get company's revenue estimates. Return JSON includes high, low, and average estimate as well as the number of analysts.",
         "parameters": [
           {
@@ -346,7 +363,7 @@
     },
     "/ebit-estimates": {
       "get": {
-        "operationId": "ebit-estimates-get",
+        "operationId": "ebit_estimates_get",
         "summary": "Get company's ebit estimates. Return JSON includes high, low, and average estimate as well as the number of analysts.",
         "parameters": [
           {
@@ -377,7 +394,7 @@
     },
     "/ebitda-estimates": {
       "get": {
-        "operationId": "ebitda-estimates-get",
+        "operationId": "ebitda_estimates_get",
         "summary": "Get company's EBITDA estimates. Return JSON includes high, low, and average estimate as well as the number of analysts.",
         "parameters": [
           {
@@ -408,7 +425,7 @@
     },
     "/eps-estimates": {
       "get": {
-        "operationId": "eps-estimates-get",
+        "operationId": "eps_estimates_get",
         "summary": "Get company's EPS estimates. Return JSON includes high, low, and average estimate as well as the number of analysts.",
         "parameters": [
           {
@@ -439,7 +456,7 @@
     },
     "/price-targets": {
       "get": {
-        "operationId": "price-targets-get",
+        "operationId": "price_targets_get",
         "summary": "Get latest price target consensus.",
         "parameters": [
           {
@@ -456,7 +473,7 @@
     },
     "/recommendation-trends": {
       "get": {
-        "operationId": "recommendation-trends-get",
+        "operationId": "recommendation_trends_get",
         "summary": "Get latest analyst recommendation trends for a company.",
         "parameters": [
           {
@@ -473,7 +490,7 @@
     },
     "/earnings-calendar": {
       "get": {
-        "operationId": "earnings-calendar-get",
+        "operationId": "earnings_calendar_get",
         "summary": "Get historical and coming earnings release. EPS and Revenue in this endpoint are non-GAAP, which means they are adjusted to exclude some one-time or unusual items. Estimates are sourced from both sell-side and buy-side analysts.",
         "parameters": [
           {
@@ -508,7 +525,7 @@
     },
     "/insider-transactions": {
       "get": {
-        "operationId": "insider-transactions-get",
+        "operationId": "insider_transactions_get",
         "summary": "Company insider transactions data sourced from Form 3,4,5, SEDI and relevant companies' filings. Limit to 100 transactions per API call.",
         "parameters": [
           {

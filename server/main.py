@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi import Query
 
 import finnhub
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from models.api import (
     DeleteRequest,
@@ -22,7 +22,13 @@ from models.api import (
 from datastore.factory import get_datastore
 from services.file import get_document_from_file
 
-from models.models import DocumentMetadata, Source
+from models.models import (
+    DocumentMetadata, 
+    Source,
+    DocumentMetadataFilter,
+    Query as ApiQuery, 
+    FormType,   
+)
 
 FINHUB_API_KEY = os.environ.get("FINHUB_API_KEY")
 finnhub_client = finnhub.Client(api_key=FINHUB_API_KEY)
@@ -99,6 +105,89 @@ async def query_main(
             request.queries,
         )
         return QueryResponse(results=results)
+    except Exception as e:
+        print("Error:", e)
+        raise HTTPException(status_code=500, detail="Internal Service Error")
+
+
+@app.get(
+    "/analyze",
+)
+async def analyze_main(
+    symbol: str = Query(...)
+):
+    try:
+
+        # Please help me create queries
+        queries = [
+            ApiQuery(
+                query="Top Risks",
+                filter=DocumentMetadataFilter(
+                    symbol=symbol,
+                    form_types=[FormType._10_K, FormType._10_Q]
+                ),
+                sort_order="desc",
+                limit=1,
+                top_k=5
+            ),
+            ApiQuery(
+                query="Top Opportunities",
+                filter=DocumentMetadataFilter(
+                    symbol=symbol,
+                    form_types=[FormType._10_K, FormType._10_Q]
+                ),
+                sort_order="desc",
+                limit=1,
+                top_k=5
+            ),
+            ApiQuery(
+                query="Forward Looking Guidance",
+                filter=DocumentMetadataFilter(
+                    symbol=symbol,
+                    form_types=[FormType.earnings_transcript]
+                ),
+                sort_order="desc",
+                limit=1,
+                top_k=5
+            ),
+        ]
+        document_results = await datastore.query(
+            queries,
+        )
+
+        # Convert the QueryResponse object to a Python dictionary
+        serialized_document_results = [result.dict() for result in document_results]
+
+        income_statements = finnhub_client.financials(symbol, "ic", "quarterly")
+        key_ratios = finnhub_client.company_basic_financials(symbol, "all")["metric"]
+        revenue_estimates = finnhub_client.company_revenue_estimates(symbol, "quarterly")
+        ebit_estimates = finnhub_client.company_ebit_estimates(symbol, "quarterly")
+        eps_estimates = finnhub_client.company_eps_estimates(symbol, "quarterly")
+        price_target = finnhub_client.price_target(symbol)
+        recommendation_trends = finnhub_client.recommendation_trends(symbol)
+        dividends = finnhub_client.stock_dividends(symbol, _from=(datetime.utcnow() - timedelta(days=5*365)).strftime('%Y-%m-%d'), to=datetime.utcnow().strftime('%Y-%m-%d'))
+        insider_transactions = finnhub_client.stock_insider_transactions(symbol, (datetime.utcnow() - timedelta(days=60)).strftime('%Y-%m-%d'), datetime.utcnow().strftime('%Y-%m-%d'))
+
+        # Construct the final response
+        response_data = {
+            "document_results": serialized_document_results,
+            "income_statements": income_statements["financials"][:10],
+            "key_ratios": key_ratios,
+            "revenue_estimates": revenue_estimates["data"][:10],
+            "ebit_estimates": ebit_estimates["data"][:10],
+            "eps_estimates": eps_estimates["data"][:10],
+            "price_target": price_target,
+            "recommendation_trends": recommendation_trends[:10],
+            "dividends": dividends,
+            "insider_transactions": insider_transactions,
+        }
+
+        json_response_data = json.dumps(response_data)
+        # print(json_response_data)
+
+        return JsonResponse(results=json_response_data)
+
+
     except Exception as e:
         print("Error:", e)
         raise HTTPException(status_code=500, detail="Internal Service Error")
@@ -234,7 +323,7 @@ async def dividend_main(
 
 
 @app.get("/price-metric")
-async def price_metric(
+async def price_metric_main(
     symbol: str = Query(...),
     timestamp: int = Query(...)
 ):
@@ -245,7 +334,7 @@ async def price_metric(
         print(f"Timestamp conversion error: {ve}")
         raise HTTPException(status_code=400, detail="Invalid timestamp format")
     except Exception as e:
-        print(f"Error in dividend_main: {e}")
+        print(f"Error in price_metric_main: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
