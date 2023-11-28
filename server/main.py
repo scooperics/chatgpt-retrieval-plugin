@@ -213,27 +213,64 @@ async def analyze_main(
                 top_k=5
             ),
         ]
-        document_results = await datastore.query(
-            queries,
-        )
 
-        # Convert the QueryResponse object to a Python dictionary
-        serialized_document_results = [result.dict() for result in document_results]
+        # Handle None for datastore query
+        document_results = await datastore.query(queries)
+        if document_results is None:
+            serialized_document_results = []
+        else:
+            serialized_document_results = [result.dict() for result in document_results if result is not None]
+        print(document_results)
 
         income_statements = finnhub_client.financials(symbol, "ic", "quarterly")
-        key_ratios = finnhub_client.company_basic_financials(symbol, "all")["metric"]
+        if income_statements is None or income_statements["financials"] is None:
+            income_statements = {"financials": []}  # Default value if None
+        print(income_statements)
+
+        annual_income_statements = finnhub_client.financials(symbol, "ic", "annual")
+        if annual_income_statements is None or annual_income_statements["financials"] is None:
+            annual_income_statements = {"financials": []}  # Default value if None
+        print(annual_income_statements)
+
+        key_ratios = finnhub_client.company_basic_financials(symbol, "all")
+        if key_ratios is None:
+            key_ratios = {"metric": {}}  # Default value if None
+        else:
+            key_ratios = key_ratios["metric"]
+        print(key_ratios)
+
         revenue_estimates = finnhub_client.company_revenue_estimates(symbol, "quarterly")
+        if revenue_estimates is None:
+            revenue_estimates = {"data": []}  # Default value if None
+        print(revenue_estimates)
+
         ebit_estimates = finnhub_client.company_ebit_estimates(symbol, "quarterly")
+        if ebit_estimates is None:
+            ebit_estimates = {"data": []}  # Default value if None
+        print(ebit_estimates)
+
         eps_estimates = finnhub_client.company_eps_estimates(symbol, "quarterly")
+        if eps_estimates is None:
+            eps_estimates = {"data": []}  # Default value if None
+        print(eps_estimates)
+
         price_target = finnhub_client.price_target(symbol)
+        print(price_target)
+
         recommendation_trends = finnhub_client.recommendation_trends(symbol)
+        print(recommendation_trends)
+
         dividends = finnhub_client.stock_dividends(symbol, _from=(datetime.utcnow() - timedelta(days=5*365)).strftime('%Y-%m-%d'), to=datetime.utcnow().strftime('%Y-%m-%d'))
+        print(dividends)
+
         insider_transactions = finnhub_client.stock_insider_transactions(symbol, (datetime.utcnow() - timedelta(days=60)).strftime('%Y-%m-%d'), datetime.utcnow().strftime('%Y-%m-%d'))
+        print(insider_transactions)
 
         # Construct the final response
         response_data = {
             "document_results": serialized_document_results,
-            "income_statements": income_statements["financials"][:10],
+            "quarterly_income_statements": income_statements["financials"][:10],
+            "annual_income_statements": annual_income_statements["financials"][:5],
             "key_ratios": key_ratios,
             "revenue_estimates": revenue_estimates["data"][:10],
             "ebit_estimates": ebit_estimates["data"][:10],
@@ -241,19 +278,17 @@ async def analyze_main(
             "price_target": price_target,
             "recommendation_trends": recommendation_trends[:10],
             "dividends": dividends,
-            "insider_transactions": insider_transactions,
+            "insider_transactions": insider_transactions["data"][:10],
         }
 
+        print(response_data)
         json_response_data = json.dumps(response_data)
-        # print(json_response_data)
 
         return JsonResponse(results=json_response_data)
-
 
     except Exception as e:
         print("Error:", e)
         raise HTTPException(status_code=500, detail="Internal Service Error")
-
 
 
 @app.get(
