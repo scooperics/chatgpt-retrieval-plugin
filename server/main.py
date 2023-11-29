@@ -571,7 +571,8 @@ async def insider_transactions(
     to_timestamp: int = Query(...)
 ):
     try:
-        body = finnhub_client.stock_insider_transactions(symbol, datetime.utcfromtimestamp(from_timestamp).strftime('%Y-%m-%d'), datetime.utcfromtimestamp(to_timestamp).strftime('%Y-%m-%d'))
+        body = finnhub_client.stock_insider_transactions(symbol, datetime.utcfromtimestamp(from_timestamp).strftime('%Y-%m-%d'), datetime.utcfromtimestamp(to_timestamp).strftime('%Y-%m-%d'))["data"][:100]
+        print(body)
         return JsonResponse(results=json.dumps(body))
 
     except Exception as e:
