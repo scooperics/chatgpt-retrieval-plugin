@@ -8,7 +8,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi import Query
 import pandas as pd
 import pandas_ta as ta
-import time
+from datastore.providers.database import DatabaseManager
+from psycopg2.extras import RealDictCursor
 
 
 import finnhub
@@ -49,6 +50,9 @@ def validate_token(credentials: HTTPAuthorizationCredentials = Depends(bearer_sc
 
 
 app = FastAPI(dependencies=[Depends(validate_token)])
+
+# Initialize DatabaseManager
+db_manager = DatabaseManager()
 
 @app.post(
     "/upsert-file",
@@ -293,6 +297,31 @@ async def analyze_main(
     except Exception as e:
         print("Error:", e)
         raise HTTPException(status_code=500, detail="Internal Service Error")
+
+
+
+@app.get("/filenames")
+async def filename(symbol: str = Query(...)):
+    try:
+        conn = db_manager.get_conn()
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            query = """
+                SELECT filename, description, form_type, fiscal_year, fiscal_quarter
+                FROM source_file_metadata
+                WHERE in_vector_db = true AND symbol = %s
+            """
+            cursor.execute(query, (symbol,))
+            filenames = cursor.fetchall()
+
+        json_response_data = json.dumps(filenames)
+        return JsonResponse(results=json_response_data)
+
+    except Exception as e:
+        print("Error:", e)
+        raise HTTPException(status_code=500, detail="Internal Service Error")
+    finally:
+        if conn:
+            db_manager.put_conn(conn)
 
 
 @app.get(
