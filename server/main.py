@@ -404,11 +404,9 @@ async def company_profile_main(
 @app.get("/dividend")
 async def dividend_main(
     symbol: str = Query(...),
-    from_timestamp: int = Query(...),
-    to_timestamp: int = Query(...)
 ):
     try:
-        body = finnhub_client.stock_dividends(symbol, _from=datetime.utcfromtimestamp(from_timestamp).strftime('%Y-%m-%d'), to=datetime.utcfromtimestamp(to_timestamp).strftime('%Y-%m-%d'))
+        body = finnhub_client.stock_dividends(symbol, _from=(datetime.utcnow() - timedelta(days=10*365)).strftime('%Y-%m-%d'), to=datetime.utcnow().strftime('%Y-%m-%d'))
         return JsonResponse(results=json.dumps(body))
     except ValueError as ve:
         print(f"Timestamp conversion error: {ve}")
@@ -422,10 +420,9 @@ async def dividend_main(
 @app.get("/price-metric")
 async def price_metric_main(
     symbol: str = Query(...),
-    timestamp: int = Query(...)
 ):
     try:
-        body = finnhub_client.price_metrics(symbol, datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d'))
+        body = finnhub_client.price_metrics(symbol, datetime.utcnow().strftime('%Y-%m-%d'))
         return JsonResponse(results=json.dumps(body))
     except ValueError as ve:
         print(f"Timestamp conversion error: {ve}")
@@ -550,11 +547,9 @@ async def recommendation_trends_main(
 )
 async def earnings_calendar_main(
     symbol: str = Query(...),
-    from_timestamp: int = Query(...),
-    to_timestamp: int = Query(...)
 ):
     try:
-        body = finnhub_client.earnings_calendar(_from=datetime.utcfromtimestamp(from_timestamp).strftime('%Y-%m-%d'), to=datetime.utcfromtimestamp(to_timestamp).strftime('%Y-%m-%d'), symbol=symbol)
+        body = finnhub_client.earnings_calendar(_from=(datetime.utcnow() - timedelta(days=5*365)).strftime('%Y-%m-%d'), to=(datetime.utcnow() + timedelta(days=5*365)), symbol=symbol)
         return JsonResponse(results=json.dumps(body))
 
     except Exception as e:
@@ -567,11 +562,9 @@ async def earnings_calendar_main(
 )
 async def insider_transactions(
     symbol: str = Query(...),
-    from_timestamp: int = Query(...),
-    to_timestamp: int = Query(...)
 ):
     try:
-        body = finnhub_client.stock_insider_transactions(symbol, datetime.utcfromtimestamp(from_timestamp).strftime('%Y-%m-%d'), datetime.utcfromtimestamp(to_timestamp).strftime('%Y-%m-%d'))["data"][:100]
+        body = finnhub_client.stock_insider_transactions(symbol, (datetime.utcnow() - timedelta(days=365)).strftime('%Y-%m-%d'), datetime.utcnow().strftime('%Y-%m-%d'))["data"][:1000]
         print(body)
         return JsonResponse(results=json.dumps(body))
 
