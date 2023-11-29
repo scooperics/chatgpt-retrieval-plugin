@@ -266,6 +266,9 @@ async def analyze_main(
         insider_transactions = finnhub_client.stock_insider_transactions(symbol, (datetime.utcnow() - timedelta(days=60)).strftime('%Y-%m-%d'), datetime.utcnow().strftime('%Y-%m-%d'))
         print(insider_transactions)
 
+        quote = finnhub_client.quote(symbol)
+        print(quote)
+
         # Construct the final response
         response_data = {
             "document_results": serialized_document_results,
@@ -279,6 +282,7 @@ async def analyze_main(
             "recommendation_trends": recommendation_trends[:10],
             "dividends": dividends,
             "insider_transactions": insider_transactions["data"][:10],
+            "current_price": quote,
         }
 
         print(response_data)
