@@ -19,6 +19,7 @@ from models.api import (
     DeleteRequest,
     DeleteResponse,
     QueryRequest,
+    FilenamesRequest,
     QueryResponse,
     UpsertRequest,
     UpsertResponse,
@@ -300,17 +301,36 @@ async def analyze_main(
 
 
 
-@app.get("/filenames")
-async def filename(symbol: str = Query(...)):
+# @app.post(
+#     "/query",
+#     response_model=QueryResponse,
+# )
+# async def query_main(
+#     request: QueryRequest = Body(...),
+# ):
+#     try:
+#         print("GOT QUERY REQUEST:")
+#         print(request)
+#         results = await datastore.query(
+
+
+@app.post(
+    "/filenames"
+)
+async def filename_main(
+    request: FilenamesRequest = Body(...)
+):
     try:
+        print(request)
+        symbols=request.symbols
         conn = db_manager.get_conn()
         with conn.cursor(cursor_factory=RealDictCursor) as cursor:
             query = """
                 SELECT filename, description, form_type, fiscal_year, fiscal_quarter
                 FROM source_file_metadata
-                WHERE in_vector_db = true AND symbol = %s
+                WHERE in_vector_db = true AND symbol = ANY(%s)
             """
-            cursor.execute(query, (symbol,))
+            cursor.execute(query, (symbols,))
             filenames = cursor.fetchall()
 
         json_response_data = json.dumps(filenames)

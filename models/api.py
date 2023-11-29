@@ -19,6 +19,8 @@ class UpsertResponse(BaseModel):
 class QueryRequest(BaseModel):
     queries: List[Query]
 
+class FilenamesRequest(BaseModel):
+    symbols: List[str]
 
 class QueryResponse(BaseModel):
     results: List[QueryResult]

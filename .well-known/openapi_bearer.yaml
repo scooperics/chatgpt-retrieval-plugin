@@ -13,7 +13,7 @@
   "paths": {
     "/query": {
       "post": {
-        "summary": "Accepts search query objects with query, filter, optional sort_order and limit. Break down complex questions into sub-questions. Required filters include symbol and form_types with optional fiscal_year, fiscal_quarter. Use sort_order desc and limit 1 to find most recent document.",
+        "summary": "Accepts search query objects with query and filter. Break down complex questions into sub-questions. Only required filter is filenames which should be first obtained from the filenames_post function.",
         "operationId": "query_post",
         "x-openai-isConsequential": false,
         "requestBody": {
@@ -82,6 +82,23 @@
             "description": "The stock symbol (ticker)."
           }
         ]
+      }
+    },
+    "/filenames": {
+      "post": {
+        "operationId": "filenames_post",
+        "summary": "Get all the SEC and transcript filenames that can be queried.  Use this before calling the query_post function.",
+        "x-openai-isConsequential": false,
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilenamesRequest"
+              }
+            }
+          },
+          "required": true
+        }
       }
     },
     "/financial-statements": {
@@ -299,24 +316,6 @@
               "type": "string"
             },
             "description": "The stock symbol (ticker)."
-          },
-          {
-            "name": "from_timestamp",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            },
-            "description": "The UNIX timestamp of the interval initial value."
-          },
-          {
-            "name": "to_timestamp",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            },
-            "description": "The UNIX timestamp of the interval end value."
           }
         ]
       }
@@ -334,15 +333,6 @@
               "type": "string"
             },
             "description": "The stock symbol (ticker)."
-          },
-          {
-            "name": "timestamp",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            },
-            "description": "The UNIX timestamp of the end of the week for which you want price metrics."
           }
         ]
       }
@@ -518,24 +508,6 @@
               "type": "string"
             },
             "description": "The stock symbol (ticker)."
-          },
-          {
-            "name": "from_timestamp",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            },
-            "description": "The UNIX timestamp of the interval initial value."
-          },
-          {
-            "name": "to_timestamp",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            },
-            "description": "The UNIX timestamp of the interval end value."
           }
         ]
       }
@@ -543,7 +515,7 @@
     "/insider-transactions": {
       "get": {
         "operationId": "insider_transactions_get",
-        "summary": "Company insider transactions data sourced from Form 3,4,5, SEDI and relevant companies' filings. Limit to 100 transactions per API call.",
+        "summary": "Company insider transactions data sourced from Form 3,4,5, SEDI and relevant companies' filings.",
         "parameters": [
           {
             "name": "symbol",
@@ -553,24 +525,6 @@
               "type": "string"
             },
             "description": "The stock symbol (ticker)."
-          },
-          {
-            "name": "from_timestamp",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            },
-            "description": "The UNIX timestamp of the interval initial value."
-          },
-          {
-            "name": "to_timestamp",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            },
-            "description": "The UNIX timestamp of the interval end value."
           }
         ]
       }
@@ -663,32 +617,14 @@
         "title": "DocumentMetadataFilter",
         "type": "object",
         "properties": {
-          "form_types": {
-            "title": "Form Types",
+          "filenames": {
+            "title": "Filenames",
             "type": "array",
+            "description": "The array of filenames that should be searched.  Get the specific filenames from the filenames_get function.",
             "items": {
-              "$ref": "#/components/schemas/FormType"
+              "$ref": "#/components/schemas/Filename"
             }
           },
-          "symbol": {
-            "title": "Stock Symbol",
-            "type": "string",
-            "description": "The symbol for the stock being analyzed. This value should always be provided."
-          },
-          "fiscal_quarter": {
-            "title": "Fiscal Quarter",
-            "type": "integer",
-            "description": "The fiscal quarter of the document being retrieved. This should be an integer from 1 to 4."
-          },
-          "fiscal_year": {
-            "title": "Fiscal Year",
-            "type": "integer",
-            "description": "The fiscal year of the document being retrieved. This should be an integer of the year (e.g. 2023)"
-          },
-          "xbrl_only": {
-            "title": "Xbrl Only",
-            "type": "boolean"
-          }
         }
       },
       "HTTPValidationError": {
@@ -704,6 +640,10 @@
           }
         }
       },
+      "Filename": {
+        "title": "Filename",
+        "type": "string",
+      },
       "Query": {
         "title": "Query",
         "required": [
@@ -717,26 +657,6 @@
           },
           "filter": {
             "$ref": "#/components/schemas/DocumentMetadataFilter"
-          },
-          "sort_order": {
-            "title": "Sort Order",
-            "type": "string",
-            "enum": [
-              "asc",
-              "desc"
-            ],
-            "default": "desc",
-            "description": "The order in which to sort when sorting by date. 'asc' for ascending, 'desc' for descending."
-          },
-          "limit": {
-            "title": "Limit Documents",
-            "type": "integer",
-            "description": "The maximum number of documents to return.  Do not use when form_types is ['8-K'] and instead filter by fiscal_year and fiscal_quarter."
-          },
-          "top_k": {
-            "title": "Top K",
-            "type": "integer",
-            "default": 20
           }
         }
       },
@@ -752,6 +672,22 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Query"
+            }
+          }
+        }
+      },
+      "FilenamesRequest": {
+        "title": "FilenamesRequest",
+        "required": [
+          "symbols"
+        ],
+        "type": "object",
+        "properties": {
+          "symbols": {
+            "title": "Symbols",
+            "type": "array",
+            "items": {
+              "symbol": "string"
             }
           }
         }
