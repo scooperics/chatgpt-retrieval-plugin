@@ -101,6 +101,23 @@
         }
       }
     },
+    "/search": {
+      "post": {
+        "operationId": "search_post",
+        "summary": "Search the vector database based on a query string.  Filter the stocks based on market cap, country, and industry.",
+        "x-openai-isConsequential": false,
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchRequest"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
     "/financial-statements": {
       "get": {
         "operationId": "financial_statements_get",
@@ -691,6 +708,95 @@
             }
           }
         }
+      },
+      "SearchRequest": {
+          "title": "SearchRequest",
+          "required": [
+            "query"
+          ],
+          "type": "object",
+          "properties": {
+              "market_cap_min": {
+                  "title": "Market Cap Minimum",
+                  "type": "integer",
+                  "description": "Minimum market capitalization"
+              },
+              "market_cap_max": {
+                  "title": "Market Cap Maximum",
+                  "type": "integer",
+                  "description": "Maximum market capitalization"
+              },
+              "country": {
+                  "title": "Country",
+                  "type": "string",
+                  "description": "Country of the company",
+                  "enum": [
+                      "CA", "DK", "PE", "SG", "US", "PR", "KR", "FR", "JP", "BS",
+                      "KY", "AE", "CY", "UY", "AU", "CL", "MX", "GG", "NL", "IN",
+                      "CN", "BM", "PH", "FI", "AR", "ID", "IM", "IE", "JE", "BR",
+                      "PA", "ZA", "ES", "HK", "MC", "NO", "IL", "JO", "GB", "IT",
+                      "TR", "VG", "CR", "GR", "SE", "BE", "CH", "CO", "DE", "LU",
+                      "TW"
+                  ]
+              },
+              "industry": {
+                  "title": "Industry",
+                  "type": "string",
+                  "description": "Industry of the company",
+                  "enum": [
+                      "Industrial Conglomerates",
+                      "Trading Companies & Distributors",
+                      "Metals & Mining",
+                      "Real Estate",
+                      "Marine",
+                      "Construction",
+                      "Media",
+                      "Commercial Services & Supplies",
+                      "Distributors",
+                      "Hotels, Restaurants & Leisure",
+                      "Tobacco",
+                      "Machinery",
+                      "Financial Services",
+                      "Logistics & Transportation",
+                      "Retail",
+                      "Insurance",
+                      "Electrical Equipment",
+                      "Aerospace & Defense",
+                      "Life Sciences Tools & Services",
+                      "Leisure Products",
+                      "Chemicals",
+                      "Packaging",
+                      "Automobiles",
+                      "Technology",
+                      "Beverages",
+                      "Banking",
+                      "Textiles, Apparel & Luxury Goods",
+                      "Health Care",
+                      "Communications",
+                      "Building",
+                      "Airlines",
+                      "Energy",
+                      "Utilities",
+                      "Biotechnology",
+                      "Consumer products",
+                      "Telecommunication",
+                      "Road & Rail",
+                      "Semiconductors",
+                      "Food Products",
+                      "Diversified Consumer Services",
+                      "Paper & Forest",
+                      "Pharmaceuticals",
+                      "Transportation Infrastructure",
+                      "Professional Services",
+                      "Auto Components"
+                  ]
+              },
+              "query": {
+                  "title": "Search Query",
+                  "type": "string",
+                  "description": "The query to perform similarity search in the database."
+              },
+          }
       },
       "QueryResponse": {
         "title": "QueryResponse",

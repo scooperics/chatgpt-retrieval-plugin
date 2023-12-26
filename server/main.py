@@ -10,6 +10,8 @@ import pandas as pd
 import pandas_ta as ta
 from datastore.providers.database import DatabaseManager
 from psycopg2.extras import RealDictCursor
+from pydantic import BaseModel
+
 
 
 import finnhub
@@ -185,7 +187,6 @@ async def analyze_main(
 ):
     try:
 
-        # Please help me create queries
         queries = [
             ApiQuery(
                 query="Top Risks",
@@ -334,6 +335,97 @@ async def filename_main(
             filenames = cursor.fetchall()
 
         json_response_data = json.dumps(filenames)
+        return JsonResponse(results=json_response_data)
+
+    except Exception as e:
+        print("Error:", e)
+        raise HTTPException(status_code=500, detail="Internal Service Error")
+    finally:
+        if conn:
+            db_manager.put_conn(conn)
+
+
+# Define a new request model
+class SearchRequest(BaseModel):
+    market_cap_min: Optional[int] = None
+    market_cap_max: Optional[int] = None
+    country: Optional[str] = None
+    industry: Optional[str] = None
+    query: str
+
+@app.post("/search")
+async def search_main(request: SearchRequest = Body(...)):
+    conn = db_manager.get_conn()
+    try:
+        # Construct the query for the stocks table
+        query_parts = []
+        params = []
+        symbols = []
+
+        if any([request.market_cap_min, request.market_cap_max, request.country, request.industry]):
+            if request.market_cap_min is not None or request.market_cap_max is not None:
+                market_cap_min = request.market_cap_min if request.market_cap_min is not None else 0
+                market_cap_max = request.market_cap_max if request.market_cap_max is not None else 1e12  # A large number to represent 'infinity'
+                query_parts.append("market_cap BETWEEN %s AND %s")
+                params.extend([market_cap_min, market_cap_max])
+
+            if request.country:
+                query_parts.append("country = %s")
+                params.append(request.country)
+
+            if request.industry:
+                query_parts.append("industry = %s")
+                params.append(request.industry)
+
+            query = "SELECT symbol FROM stocks WHERE " + " AND ".join(query_parts)
+            print(query)
+            print(params)
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute(query, tuple(params))
+                symbols = [row['symbol'] for row in cursor.fetchall()]
+            print(symbols)
+
+        # Continue with the existing logic using the obtained symbols or all symbols if none were filtered
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            if symbols:
+                query = """
+                    SELECT filename
+                    FROM source_file_metadata
+                    WHERE in_vector_db = true AND symbol = ANY(%s)
+                """
+                cursor.execute(query, (symbols,))
+            else:
+                query = """
+                    SELECT filename
+                    FROM source_file_metadata
+                    WHERE in_vector_db = true
+                """
+                cursor.execute(query)
+
+            filenames = [row['filename'] for row in cursor.fetchall()]
+
+        print(f"QUERY: {request.query}")
+        print(f"FILENAMES: {filenames}")
+
+        queries = [
+            ApiQuery(
+                query=request.query,
+                filter=DocumentMetadataFilter(
+                    filenames=filenames,
+                ),
+                top_k=50
+            )
+        ]
+
+        # Handle None for datastore query
+        document_results = await datastore.query(queries)
+        if document_results is None:
+            serialized_document_results = []
+        else:
+            serialized_document_results = [result.dict() for result in document_results if result is not None]
+
+        json_response_data = json.dumps(serialized_document_results)
+
         return JsonResponse(results=json_response_data)
 
     except Exception as e:
