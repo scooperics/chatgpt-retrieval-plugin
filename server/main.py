@@ -1,5 +1,5 @@
 import os
-from typing import Optional
+from typing import Optional, List
 import json
 import uvicorn
 from fastapi import FastAPI, File, Form, HTTPException, Depends, Body, UploadFile
@@ -11,6 +11,7 @@ import pandas_ta as ta
 from datastore.providers.database import DatabaseManager
 from psycopg2.extras import RealDictCursor
 from pydantic import BaseModel
+from datetime import date
 
 
 
@@ -352,6 +353,9 @@ class SearchRequest(BaseModel):
     country: Optional[str] = None
     industry: Optional[str] = None
     query: str
+    published_before_date: Optional[date] = None
+    published_after_date: Optional[date] = None
+    form_types: Optional[List[str]] = None 
 
 @app.post("/search")
 async def search_main(request: SearchRequest = Body(...)):
@@ -377,7 +381,25 @@ async def search_main(request: SearchRequest = Body(...)):
                 query_parts.append("industry = %s")
                 params.append(request.industry)
 
-            query = "SELECT symbol FROM stocks WHERE " + " AND ".join(query_parts)
+            if request.published_before_date:
+                query_parts.append("published_date <= %s")
+                params.append(request.published_before_date)
+
+            if request.published_after_date:
+                query_parts.append("published_date >= %s")
+                params.append(request.published_after_date)
+
+            if request.form_types:
+                form_types_placeholders = ', '.join(['%s'] * len(request.form_types))
+                query_parts.append(f"form_type IN ({form_types_placeholders})")
+                params.extend(request.form_types)
+
+            # Construct the final query for stocks table
+            if query_parts:
+                query = "SELECT symbol FROM stocks WHERE " + " AND ".join(query_parts)
+            else:
+                query = "SELECT symbol FROM stocks"
+
             print(query)
             print(params)
             with conn.cursor(cursor_factory=RealDictCursor) as cursor:

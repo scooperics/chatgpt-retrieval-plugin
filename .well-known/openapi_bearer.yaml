@@ -719,12 +719,12 @@
               "market_cap_min": {
                   "title": "Market Cap Minimum",
                   "type": "integer",
-                  "description": "Minimum market capitalization"
+                  "description": "Minimum market capitalization in Millions"
               },
               "market_cap_max": {
                   "title": "Market Cap Maximum",
                   "type": "integer",
-                  "description": "Maximum market capitalization"
+                  "description": "Maximum market capitalization in Millions"
               },
               "country": {
                   "title": "Country",
@@ -795,6 +795,25 @@
                   "title": "Search Query",
                   "type": "string",
                   "description": "The query to perform similarity search in the database."
+              },
+              "published_before_date": {
+                  "title": "Published Before Date",
+                  "type": "string",
+                  "format": "date",
+                  "description": "Filter for files published before this date (inclusive)."
+              },
+              "published_after_date": {
+                  "title": "Published After Date",
+                  "type": "string",
+                  "format": "date",
+                  "description": "Filter for files published after this date (inclusive)."
+              },
+              "form_types": {
+                  "title": "Form Types",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FormType"
+                  }
               },
           }
       },
