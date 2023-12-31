@@ -46,9 +46,15 @@ class DocumentChunk(BaseModel):
     metadata: DocumentChunkMetadata
     embedding: Optional[List[float]] = None
 
+    def to_dict(self):
+        return self.dict()
+
 
 class DocumentChunkWithScore(DocumentChunk):
     score: float
+
+    def to_dict(self):
+        return self.dict()
 
 
 class Document(BaseModel):
@@ -93,3 +99,8 @@ class QueryResult(BaseModel):
     query: str
     results: List[DocumentChunkWithScore]
 
+    def to_dict(self):
+        return {
+            "query": self.query,
+            "results": [result.to_dict() for result in self.results]
+        }

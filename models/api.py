@@ -25,6 +25,12 @@ class FilenamesRequest(BaseModel):
 class QueryResponse(BaseModel):
     results: List[QueryResult]
 
+    def to_dict(self):
+        return {
+            "results": [result.to_dict() for result in self.results]
+        }
+
+
 class DeleteRequest(BaseModel):
     ids: Optional[List[str]] = None
     filter: Optional[DocumentMetadataFilter] = None

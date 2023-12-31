@@ -180,12 +180,27 @@ async def technicals_main(
         raise HTTPException(status_code=500, detail="Internal Service Error")
 
 
+def extract_financial_ratios(data):
+    # Define the keys for the ratios we are interested in
+    keys = {
+        'price_earnings_ratio': 'peTTM',  # Price to Earnings Ratio
+        'price_sales_ratio': 'psTTM',  # Price to Sales Ratio
+        'price_free_cash_flow_ratio': 'pfcfShareTTM',  # Price to Free Cash Flow Ratio
+        'price_book_ratio': 'pbQuarterly'  # Price to Book Ratio
+    }
+
+    # Extract and label the ratios
+    extracted_ratios = {label: data.get(key, None) for label, key in keys.items()}
+
+    return extracted_ratios
+
 @app.get(
     "/analyze",
 )
 async def analyze_main(
     symbol: str = Query(...)
 ):
+
     try:
 
         queries = [
@@ -222,84 +237,142 @@ async def analyze_main(
         ]
 
         # Handle None for datastore query
-        document_results = await datastore.query(queries)
-        if document_results is None:
-            serialized_document_results = []
-        else:
-            serialized_document_results = [result.dict() for result in document_results if result is not None]
-        print(document_results)
+        documents = await datastore.query(queries)
+        if documents is None:
+            documents = []
+        query_response_dict = QueryResponse(results=documents).to_dict()
+        key_risks = query_response_dict['results'][0]['results'] if len(query_response_dict['results']) > 0 else []
+        key_opportunities = query_response_dict['results'][1]['results'] if len(query_response_dict['results']) > 1 else []
+        forward_guidance = query_response_dict['results'][2]['results'] if len(query_response_dict['results']) > 2 else []
 
+        print(key_risks)
+        print(key_opportunities)
+        print(forward_guidance)
+
+    except Exception as e:
+        print("Error:", e)
+
+    # try:
+    #     news = finnhub_client.company_news(symbol, _from=(datetime.utcnow() - timedelta(days=5)).strftime('%Y-%m-%d'), to=datetime.utcnow().strftime('%Y-%m-%d'))
+    #     if news is None:
+    #         news = []  # Default value if None
+    #     print(f"NEWS: {news}")
+    # except Exception as e:
+    #     print("Error:", e)
+
+    try:
         income_statements = finnhub_client.financials(symbol, "ic", "quarterly")
         if income_statements is None or income_statements["financials"] is None:
             income_statements = {"financials": []}  # Default value if None
         print(income_statements)
+    except Exception as e:
+        print("Error:", e)
 
+    try:
+        cash_flow = finnhub_client.financials(symbol, "cf", "quarterly")
+        if cash_flow is None or cash_flow["financials"] is None:
+            cash_flow = {"financials": []}  # Default value if None
+        print(cash_flow)
+    except Exception as e:
+        print("Error:", e)
+
+    try:
         annual_income_statements = finnhub_client.financials(symbol, "ic", "annual")
         if annual_income_statements is None or annual_income_statements["financials"] is None:
             annual_income_statements = {"financials": []}  # Default value if None
         print(annual_income_statements)
+    except Exception as e:
+        print("Error:", e)
 
+    try:
         key_ratios = finnhub_client.company_basic_financials(symbol, "all")
         if key_ratios is None:
             key_ratios = {"metric": {}}  # Default value if None
         else:
-            key_ratios = key_ratios["metric"]
+            key_ratios = extract_financial_ratios(key_ratios["metric"])
         print(key_ratios)
+    except Exception as e:
+        print("Error:", e)
 
+    try:
         revenue_estimates = finnhub_client.company_revenue_estimates(symbol, "quarterly")
         if revenue_estimates is None:
             revenue_estimates = {"data": []}  # Default value if None
         print(revenue_estimates)
+    except Exception as e:
+        print("Error:", e)
 
+    try:
         ebit_estimates = finnhub_client.company_ebit_estimates(symbol, "quarterly")
         if ebit_estimates is None:
             ebit_estimates = {"data": []}  # Default value if None
         print(ebit_estimates)
+    except Exception as e:
+        print("Error:", e)
 
+    try:
         eps_estimates = finnhub_client.company_eps_estimates(symbol, "quarterly")
         if eps_estimates is None:
             eps_estimates = {"data": []}  # Default value if None
         print(eps_estimates)
-
-        price_target = finnhub_client.price_target(symbol)
-        print(price_target)
-
-        recommendation_trends = finnhub_client.recommendation_trends(symbol)
-        print(recommendation_trends)
-
-        dividends = finnhub_client.stock_dividends(symbol, _from=(datetime.utcnow() - timedelta(days=5*365)).strftime('%Y-%m-%d'), to=datetime.utcnow().strftime('%Y-%m-%d'))
-        print(dividends)
-
-        insider_transactions = finnhub_client.stock_insider_transactions(symbol, (datetime.utcnow() - timedelta(days=60)).strftime('%Y-%m-%d'), datetime.utcnow().strftime('%Y-%m-%d'))
-        print(insider_transactions)
-
-        quote = finnhub_client.quote(symbol)
-        print(quote)
-
-        # Construct the final response
-        response_data = {
-            "document_results": serialized_document_results,
-            "quarterly_income_statements": income_statements["financials"][:10],
-            "annual_income_statements": annual_income_statements["financials"][:5],
-            "key_ratios": key_ratios,
-            "revenue_estimates": revenue_estimates["data"][:10],
-            "ebit_estimates": ebit_estimates["data"][:10],
-            "eps_estimates": eps_estimates["data"][:10],
-            "price_target": price_target,
-            "recommendation_trends": recommendation_trends[:10],
-            "dividends": dividends,
-            "insider_transactions": insider_transactions["data"][:10],
-            "current_price": quote,
-        }
-
-        print(response_data)
-        json_response_data = json.dumps(response_data)
-
-        return JsonResponse(results=json_response_data)
-
     except Exception as e:
         print("Error:", e)
-        raise HTTPException(status_code=500, detail="Internal Service Error")
+
+    try:
+        price_target = finnhub_client.price_target(symbol)
+        print(price_target)
+    except Exception as e:
+        print("Error:", e)
+
+    try:
+        recommendation_trends = finnhub_client.recommendation_trends(symbol)
+        print(recommendation_trends)
+    except Exception as e:
+        print("Error:", e)
+
+    try:
+        dividends = finnhub_client.stock_dividends(symbol, _from=(datetime.utcnow() - timedelta(days=5*365)).strftime('%Y-%m-%d'), to=datetime.utcnow().strftime('%Y-%m-%d'))
+        print(dividends)
+    except Exception as e:
+        print("Error:", e)
+
+    try:
+        insider_transactions = finnhub_client.stock_insider_transactions(symbol, (datetime.utcnow() - timedelta(days=60)).strftime('%Y-%m-%d'), datetime.utcnow().strftime('%Y-%m-%d'))
+        print(insider_transactions)
+    except Exception as e:
+        print("Error:", e)
+
+    try:
+        quote = finnhub_client.quote(symbol)
+        print(quote)
+    except Exception as e:
+        print("Error:", e)
+
+
+    # Construct the final response
+    response_data = {
+        "quarterly_income_statements": income_statements["financials"][:5],
+        "quarterly_cash_flow": cash_flow["financials"][:5],
+        "annual_income_statements": annual_income_statements["financials"][:5],
+        "revenue_estimates": revenue_estimates["data"][:3],
+        "ebit_estimates": ebit_estimates["data"][:3],
+        "eps_estimates": eps_estimates["data"][:3],
+        "price_target": price_target,
+        "recommendation_trends": recommendation_trends[:5],
+        "dividends": dividends,
+        "insider_transactions": insider_transactions["data"][:20],
+        "current_price": quote,
+        "key_ratios": key_ratios,
+        "key_risks": key_risks,
+        "key_opportunities": key_opportunities,
+        "forward_guidance": forward_guidance,
+    }
+
+    print(response_data)
+    json_response_data = json.dumps(response_data)
+
+    return JsonResponse(results=json_response_data)
+
 
 
 
