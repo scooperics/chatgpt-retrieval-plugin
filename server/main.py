@@ -428,6 +428,8 @@ class SearchRequest(BaseModel):
     query: str
     published_before_date: Optional[date] = None
     published_after_date: Optional[date] = None
+    published_before_days_before_current: Optional[int] = None
+    published_after_days_before_current: Optional[int] = None
     form_types: Optional[List[str]] = None 
 
 @app.post("/search")
@@ -477,9 +479,21 @@ async def search_main(request: SearchRequest = Body(...)):
             query_parts.append("published_date <= %s")
             params.append(request.published_before_date)
 
+        if request.published_before_days_before_current:
+            days_before = request.published_before_days_before_current
+            target_date = datetime.now() - timedelta(days=days_before)
+            query_parts.append("published_date <= %s")
+            params.append(target_date.date())  # Use .date() to get the date part without time
+
         if request.published_after_date:
             query_parts.append("published_date >= %s")
             params.append(request.published_after_date)
+
+        if request.published_after_days_before_current:
+            days_before = request.published_after_days_before_current
+            target_date = datetime.now() - timedelta(days=days_before)
+            query_parts.append("published_date >= %s")
+            params.append(target_date.date())  # Use .date() to get the date part without time
 
         if request.form_types:
             form_types_placeholders = ', '.join(['%s'] * len(request.form_types))
