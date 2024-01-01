@@ -194,6 +194,20 @@ def extract_financial_ratios(data):
 
     return extracted_ratios
 
+def update_with_ebitda(cash_flow):
+    for financial in cash_flow["financials"]:
+        net_income = financial.get("netIncomeStartingLine", 0)
+        interest = financial.get("cashInterestPaid", 0)
+        taxes = financial.get("cashTaxesPaid", 0)
+        depreciation_amortization = financial.get("depreciationAmortization", 0)
+        
+        # Calculate EBITDA
+        ebitda = net_income + interest + taxes + depreciation_amortization
+
+        # Update the dictionary
+        financial["EBITDA"] = ebitda
+
+
 @app.get(
     "/analyze",
 )
@@ -234,6 +248,16 @@ async def analyze_main(
                 limit=1,
                 top_k=5
             ),
+            ApiQuery(
+                query="Growth Opportunities",
+                filter=DocumentMetadataFilter(
+                    symbol=symbol,
+                    form_types=[FormType.earnings_transcript, FormType.other_transcript]
+                ),
+                sort_order="desc",
+                limit=1,
+                top_k=5
+            ),
         ]
 
         # Handle None for datastore query
@@ -244,10 +268,12 @@ async def analyze_main(
         key_risks = query_response_dict['results'][0]['results'] if len(query_response_dict['results']) > 0 else []
         key_opportunities = query_response_dict['results'][1]['results'] if len(query_response_dict['results']) > 1 else []
         forward_guidance = query_response_dict['results'][2]['results'] if len(query_response_dict['results']) > 2 else []
+        growth_opportunities = query_response_dict['results'][3]['results'] if len(query_response_dict['results']) > 2 else []
 
         print(key_risks)
         print(key_opportunities)
         print(forward_guidance)
+        print(growth_opportunities)
 
     except Exception as e:
         print("Error:", e)
@@ -273,6 +299,14 @@ async def analyze_main(
         if cash_flow is None or cash_flow["financials"] is None:
             cash_flow = {"financials": []}  # Default value if None
         print(cash_flow)
+    except Exception as e:
+        print("Error:", e)
+
+    try:
+        balance_sheet = finnhub_client.financials(symbol, "bs", "quarterly")
+        if balance_sheet is None or balance_sheet["financials"] is None:
+            balance_sheet = {"financials": []}  # Default value if None
+        print(balance_sheet)
     except Exception as e:
         print("Error:", e)
 
@@ -353,6 +387,7 @@ async def analyze_main(
     response_data = {
         "quarterly_income_statements": income_statements["financials"][:5],
         "quarterly_cash_flow": cash_flow["financials"][:5],
+        "quarterly_balance_sheet": balance_sheet["financials"][:5],
         "annual_income_statements": annual_income_statements["financials"][:5],
         "revenue_estimates": revenue_estimates["data"][:3],
         "ebit_estimates": ebit_estimates["data"][:3],
@@ -366,6 +401,7 @@ async def analyze_main(
         "key_risks": key_risks,
         "key_opportunities": key_opportunities,
         "forward_guidance": forward_guidance,
+        "growth_opportunities": growth_opportunities,
     }
 
     print(response_data)
