@@ -222,21 +222,21 @@ async def analyze_main(
                 query="Top Risks",
                 filter=DocumentMetadataFilter(
                     symbol=symbol,
-                    form_types=[FormType._10_K, FormType._10_Q]
+                    form_types=[FormType._20_F, FormType._10_K, FormType._10_Q, FormType.earnings_transcript]
                 ),
                 sort_order="desc",
-                limit=1,
-                top_k=10
+                limit=4,
+                top_k=30
             ),
             ApiQuery(
                 query="Top Opportunities",
                 filter=DocumentMetadataFilter(
                     symbol=symbol,
-                    form_types=[FormType._10_K, FormType._10_Q]
+                    form_types=[FormType._20_F, FormType._10_K, FormType._10_Q, FormType.earnings_transcript]
                 ),
                 sort_order="desc",
-                limit=1,
-                top_k=10
+                limit=4,
+                top_k=30
             ),
             ApiQuery(
                 query="Forward Looking Guidance",
@@ -245,8 +245,8 @@ async def analyze_main(
                     form_types=[FormType.earnings_transcript]
                 ),
                 sort_order="desc",
-                limit=1,
-                top_k=10
+                limit=2,
+                top_k=20
             )
         ]
 
