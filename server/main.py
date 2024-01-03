@@ -226,7 +226,7 @@ async def analyze_main(
                 ),
                 sort_order="desc",
                 limit=1,
-                top_k=5
+                top_k=10
             ),
             ApiQuery(
                 query="Top Opportunities",
@@ -236,7 +236,7 @@ async def analyze_main(
                 ),
                 sort_order="desc",
                 limit=1,
-                top_k=5
+                top_k=10
             ),
             ApiQuery(
                 query="Forward Looking Guidance",
@@ -246,18 +246,8 @@ async def analyze_main(
                 ),
                 sort_order="desc",
                 limit=1,
-                top_k=5
-            ),
-            ApiQuery(
-                query="Growth Opportunities",
-                filter=DocumentMetadataFilter(
-                    symbol=symbol,
-                    form_types=[FormType.earnings_transcript, FormType.other_transcript]
-                ),
-                sort_order="desc",
-                limit=1,
-                top_k=5
-            ),
+                top_k=10
+            )
         ]
 
         # Handle None for datastore query
@@ -268,12 +258,10 @@ async def analyze_main(
         key_risks = query_response_dict['results'][0]['results'] if len(query_response_dict['results']) > 0 else []
         key_opportunities = query_response_dict['results'][1]['results'] if len(query_response_dict['results']) > 1 else []
         forward_guidance = query_response_dict['results'][2]['results'] if len(query_response_dict['results']) > 2 else []
-        growth_opportunities = query_response_dict['results'][3]['results'] if len(query_response_dict['results']) > 2 else []
 
         print(key_risks)
         print(key_opportunities)
         print(forward_guidance)
-        print(growth_opportunities)
 
     except Exception as e:
         print("Error:", e)
@@ -401,7 +389,6 @@ async def analyze_main(
         "key_risks": key_risks,
         "key_opportunities": key_opportunities,
         "forward_guidance": forward_guidance,
-        "growth_opportunities": growth_opportunities,
     }
 
     print(response_data)
