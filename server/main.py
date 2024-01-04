@@ -222,20 +222,20 @@ async def analyze_main(
                 query="Top Risks",
                 filter=DocumentMetadataFilter(
                     symbol=symbol,
-                    form_types=[FormType._20_F, FormType._10_K, FormType._10_Q, FormType.earnings_transcript]
+                    form_types=[FormType._20_F, FormType._10_K, FormType._10_Q]
                 ),
                 sort_order="desc",
-                limit=4,
+                limit=2,
                 top_k=30
             ),
             ApiQuery(
                 query="Top Opportunities",
                 filter=DocumentMetadataFilter(
                     symbol=symbol,
-                    form_types=[FormType._20_F, FormType._10_K, FormType._10_Q, FormType.earnings_transcript]
+                    form_types=[FormType._20_F, FormType._10_K, FormType._10_Q]
                 ),
                 sort_order="desc",
-                limit=4,
+                limit=2,
                 top_k=30
             ),
             ApiQuery(
