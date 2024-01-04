@@ -215,6 +215,9 @@ async def analyze_main(
     symbol: str = Query(...)
 ):
 
+    key_risks = []
+    key_opportunities = []
+    forward_guidance = []
     try:
 
         queries = [
@@ -259,9 +262,9 @@ async def analyze_main(
         key_opportunities = query_response_dict['results'][1]['results'] if len(query_response_dict['results']) > 1 else []
         forward_guidance = query_response_dict['results'][2]['results'] if len(query_response_dict['results']) > 2 else []
 
-        print(key_risks)
-        print(key_opportunities)
-        print(forward_guidance)
+        print(f"KEY RISKS: {key_risks}")
+        print(f"KEY OPPORTUNITIES: {key_opportunities}")
+        print(f"FORWARD GUIDANCE: {forward_guidance}")
 
     except Exception as e:
         print("Error:", e)
@@ -274,6 +277,7 @@ async def analyze_main(
     # except Exception as e:
     #     print("Error:", e)
 
+    income_statements = {"financials": []}  # Default value if None
     try:
         income_statements = finnhub_client.financials(symbol, "ic", "quarterly")
         if income_statements is None or income_statements["financials"] is None:
@@ -282,6 +286,7 @@ async def analyze_main(
     except Exception as e:
         print("Error:", e)
 
+    cash_flow = {"financials": []}  # Default value if None
     try:
         cash_flow = finnhub_client.financials(symbol, "cf", "quarterly")
         if cash_flow is None or cash_flow["financials"] is None:
@@ -290,6 +295,7 @@ async def analyze_main(
     except Exception as e:
         print("Error:", e)
 
+    balance_sheet = {"financials": []}  # Default value if None
     try:
         balance_sheet = finnhub_client.financials(symbol, "bs", "quarterly")
         if balance_sheet is None or balance_sheet["financials"] is None:
@@ -298,6 +304,7 @@ async def analyze_main(
     except Exception as e:
         print("Error:", e)
 
+    annual_income_statements = {"financials": []}  # Default value if None
     try:
         annual_income_statements = finnhub_client.financials(symbol, "ic", "annual")
         if annual_income_statements is None or annual_income_statements["financials"] is None:
@@ -306,6 +313,7 @@ async def analyze_main(
     except Exception as e:
         print("Error:", e)
 
+    key_ratios = {"metric": {}}  # Default value if None
     try:
         key_ratios = finnhub_client.company_basic_financials(symbol, "all")
         if key_ratios is None:
@@ -316,6 +324,7 @@ async def analyze_main(
     except Exception as e:
         print("Error:", e)
 
+    revenue_estimates = {"data": []}  # Default value if None
     try:
         revenue_estimates = finnhub_client.company_revenue_estimates(symbol, "quarterly")
         if revenue_estimates is None:
@@ -324,6 +333,7 @@ async def analyze_main(
     except Exception as e:
         print("Error:", e)
 
+    ebit_estimates = {"data": []}  # Default value if None
     try:
         ebit_estimates = finnhub_client.company_ebit_estimates(symbol, "quarterly")
         if ebit_estimates is None:
@@ -332,6 +342,7 @@ async def analyze_main(
     except Exception as e:
         print("Error:", e)
 
+    eps_estimates = {"data": []}  # Default value if None
     try:
         eps_estimates = finnhub_client.company_eps_estimates(symbol, "quarterly")
         if eps_estimates is None:
@@ -340,30 +351,35 @@ async def analyze_main(
     except Exception as e:
         print("Error:", e)
 
+    price_target={}
     try:
         price_target = finnhub_client.price_target(symbol)
         print(price_target)
     except Exception as e:
         print("Error:", e)
 
+    recommendation_trends=[]
     try:
         recommendation_trends = finnhub_client.recommendation_trends(symbol)
         print(recommendation_trends)
     except Exception as e:
         print("Error:", e)
 
+    dividends=[]
     try:
         dividends = finnhub_client.stock_dividends(symbol, _from=(datetime.utcnow() - timedelta(days=5*365)).strftime('%Y-%m-%d'), to=datetime.utcnow().strftime('%Y-%m-%d'))
         print(dividends)
     except Exception as e:
         print("Error:", e)
 
+    insider_transactions={}
     try:
         insider_transactions = finnhub_client.stock_insider_transactions(symbol, (datetime.utcnow() - timedelta(days=60)).strftime('%Y-%m-%d'), datetime.utcnow().strftime('%Y-%m-%d'))
         print(insider_transactions)
     except Exception as e:
         print("Error:", e)
 
+    quote={}
     try:
         quote = finnhub_client.quote(symbol)
         print(quote)
