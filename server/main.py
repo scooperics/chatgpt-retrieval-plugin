@@ -440,9 +440,11 @@ async def filename_main(
         conn = db_manager.get_conn()
         with conn.cursor(cursor_factory=RealDictCursor) as cursor:
             query = """
-                SELECT filename, description, form_type, fiscal_year, fiscal_quarter
+                SELECT filename, description, form_type, fiscal_year, fiscal_quarter, 
+                TO_CHAR(published_date, 'YYYY-MM-DD') AS published_date_str
                 FROM source_file_metadata
                 WHERE in_vector_db = true AND symbol = ANY(%s)
+                ORDER BY published_date desc
             """
             cursor.execute(query, (symbols,))
             filenames = cursor.fetchall()
