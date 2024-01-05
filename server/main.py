@@ -229,7 +229,7 @@ async def analyze_main(
                 ),
                 sort_order="desc",
                 limit=2,
-                top_k=30
+                top_k=20
             ),
             ApiQuery(
                 query="Top Opportunities",
@@ -239,7 +239,7 @@ async def analyze_main(
                 ),
                 sort_order="desc",
                 limit=2,
-                top_k=30
+                top_k=20
             ),
             ApiQuery(
                 query="Forward Looking Guidance",
@@ -249,7 +249,7 @@ async def analyze_main(
                 ),
                 sort_order="desc",
                 limit=2,
-                top_k=20
+                top_k=10
             )
         ]
 
