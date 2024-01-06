@@ -219,6 +219,53 @@ def update_with_ebitda(cash_flow):
         # Update the dictionary
         financial["EBITDA"] = ebitda
 
+def extract_metrics(data, region, sector):
+    """
+    Extracts metrics for a given region and sector from the provided data.
+
+    :param data: The dataset containing sector information and metrics.
+    :param region: The region for which the metrics are required.
+    :param sector: The sector for which the metrics are required.
+    :return: A dictionary containing the metrics for the specified region and sector.
+    """
+    # Check if the provided region matches the data's region
+    if data['region'] != region:
+        return "Region not found in the data."
+
+    # Search for the specified sector in the data
+    for entry in data['data']:
+        if entry['sector'] == sector:
+            # Extract only the median values from the metrics
+            median_metrics = {key: value['m'] for key, value in entry['metrics'].items()}
+            return median_metrics
+
+    # If the sector is not found in the data
+    return "Sector not found in the data."
+
+
+def get_sector_by_symbol(symbol):
+    try:
+        conn = db_manager.get_conn()
+        try:
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                query = """
+                    SELECT sector
+                    FROM stocks
+                    WHERE symbol = %s
+                """
+                cursor.execute(query, (symbol,))
+                result = cursor.fetchone()
+                if result:
+                    return result['sector']
+                else:
+                    return None
+        finally:
+            conn.close()  # Ensure the connection is closed
+    except Exception as e:
+        print("An error occurred:", e)
+        # Handle the exception as needed
+        return None
+
 
 @app.get(
     "/analyze",
@@ -336,6 +383,18 @@ async def analyze_main(
     except Exception as e:
         print("Error:", e)
 
+
+    sector_ratios = {"metric": {}}  # Default value if None
+    try:
+        raw_sector_ratios = finnhub_client.sector_metric('NA')
+        if raw_sector_ratios is None:
+            sector_ratios = {"metric": {}}  # Default value if None
+        else:
+            sector_ratios = extract_financial_ratios(extract_metrics(raw_sector_ratios, 'NA', get_sector_by_symbol(symbol)))
+        print(sector_ratios)
+    except Exception as e:
+        print("Error:", e)
+
     revenue_estimates = {"data": []}  # Default value if None
     try:
         revenue_estimates = finnhub_client.company_revenue_estimates(symbol, "quarterly")
@@ -414,6 +473,7 @@ async def analyze_main(
         "insider_transactions": insider_transactions["data"][:20],
         "current_price": quote,
         "key_ratios": key_ratios,
+        "sector_ratios": sector_ratios,
         "key_risks": key_risks,
         "key_opportunities": key_opportunities,
         "forward_guidance": forward_guidance,
