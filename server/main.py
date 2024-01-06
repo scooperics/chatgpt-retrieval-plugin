@@ -186,7 +186,19 @@ def extract_financial_ratios(data):
         'price_earnings_ratio': 'peTTM',  # Price to Earnings Ratio
         'price_sales_ratio': 'psTTM',  # Price to Sales Ratio
         'price_free_cash_flow_ratio': 'pfcfShareTTM',  # Price to Free Cash Flow Ratio
-        'price_book_ratio': 'pbQuarterly'  # Price to Book Ratio
+        'price_book_ratio': 'pbQuarterly',  # Price to Book Ratio
+        'revenue_growth_3_year': "revenueGrowth3Y",
+        'revenue_growth_5_year': "revenueGrowth5Y",
+        'revenue_growth_ttm': "revenueGrowthTTMYoy",
+        'eps_growth_3_year': "epsGrowth3Y",
+        'eps_growth_5_year': "epsGrowth5Y",
+        'eps_growth_ttm': "epsGrowthTTMYoy",
+        'cash_flow_per_share_ttm': "cashFlowPerShareTTM",
+        'market_cap': "marketCapitalization",
+        'dividend_growth_5_year': "dividendGrowthRate5Y",
+        'dividend_per_share_ttm': "dividendPerShareTTM",
+        'ebitda_growth_5_year': "ebitdaCagr5Y",
+        'ebitda_per_share_ttm': "ebitdPerShareTTM",
     }
 
     # Extract and label the ratios
