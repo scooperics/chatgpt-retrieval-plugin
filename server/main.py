@@ -275,8 +275,6 @@ async def analyze_main(
 ):
 
     key_risks = []
-    key_opportunities = []
-    forward_guidance = []
     try:
 
         queries = [
@@ -290,6 +288,25 @@ async def analyze_main(
                 limit=2,
                 top_k=15
             ),
+        ]
+
+        # Handle None for datastore query
+        documents = await datastore.query(queries)
+
+        if documents is None:
+            documents = []
+        query_response_dict = QueryResponse(results=documents).to_dict()
+        key_risks = query_response_dict['results'][0]['results'] if len(query_response_dict['results']) > 0 else []
+        print(f"KEY RISKS: {key_risks}")
+
+    except Exception as e:
+        print("Error:", e)
+
+
+    key_opportunities = []
+    try:
+
+        queries = [
             ApiQuery(
                 query="Top Opportunities",
                 filter=DocumentMetadataFilter(
@@ -300,6 +317,27 @@ async def analyze_main(
                 limit=2,
                 top_k=15
             ),
+        ]
+
+        # Handle None for datastore query
+        documents = await datastore.query(queries)
+
+        if documents is None:
+            documents = []
+        query_response_dict = QueryResponse(results=documents).to_dict()
+        key_opportunities = query_response_dict['results'][0]['results'] if len(query_response_dict['results']) > 0 else []
+
+        print(f"KEY OPPORTUNITIES: {key_opportunities}")
+
+    except Exception as e:
+        print("Error:", e)
+
+
+
+    forward_guidance = []
+    try:
+
+        queries = [
             ApiQuery(
                 query="Forward Looking Guidance",
                 filter=DocumentMetadataFilter(
@@ -314,21 +352,18 @@ async def analyze_main(
 
         # Handle None for datastore query
         documents = await datastore.query(queries)
-        print(f"DOCUMENTS = {documents}")
 
         if documents is None:
             documents = []
         query_response_dict = QueryResponse(results=documents).to_dict()
-        key_risks = query_response_dict['results'][0]['results'] if len(query_response_dict['results']) > 0 else []
-        key_opportunities = query_response_dict['results'][1]['results'] if len(query_response_dict['results']) > 1 else []
-        forward_guidance = query_response_dict['results'][2]['results'] if len(query_response_dict['results']) > 2 else []
+        forward_guidance = query_response_dict['results'][0]['results'] if len(query_response_dict['results']) > 0 else []
 
-        print(f"KEY RISKS: {key_risks}")
-        print(f"KEY OPPORTUNITIES: {key_opportunities}")
         print(f"FORWARD GUIDANCE: {forward_guidance}")
 
     except Exception as e:
         print("Error:", e)
+
+
 
     # try:
     #     news = finnhub_client.company_news(symbol, _from=(datetime.utcnow() - timedelta(days=5)).strftime('%Y-%m-%d'), to=datetime.utcnow().strftime('%Y-%m-%d'))
@@ -343,6 +378,8 @@ async def analyze_main(
         income_statements = finnhub_client.financials(symbol, "ic", "quarterly")
         if income_statements is None or income_statements["financials"] is None:
             income_statements = {"financials": []}  # Default value if None
+        else:
+            income_statements = income_statements["financials"][0]
         print(income_statements)
     except Exception as e:
         print("Error:", e)
@@ -352,6 +389,8 @@ async def analyze_main(
         cash_flow = finnhub_client.financials(symbol, "cf", "quarterly")
         if cash_flow is None or cash_flow["financials"] is None:
             cash_flow = {"financials": []}  # Default value if None
+        else:
+            cash_flow = cash_flow["financials"][0]
         print(cash_flow)
     except Exception as e:
         print("Error:", e)
@@ -361,6 +400,8 @@ async def analyze_main(
         balance_sheet = finnhub_client.financials(symbol, "bs", "quarterly")
         if balance_sheet is None or balance_sheet["financials"] is None:
             balance_sheet = {"financials": []}  # Default value if None
+        else:
+            balance_sheet = balance_sheet["financials"][0]
         print(balance_sheet)
     except Exception as e:
         print("Error:", e)
@@ -370,6 +411,8 @@ async def analyze_main(
         annual_income_statements = finnhub_client.financials(symbol, "ic", "annual")
         if annual_income_statements is None or annual_income_statements["financials"] is None:
             annual_income_statements = {"financials": []}  # Default value if None
+        else:
+            annual_income_statements = annual_income_statements["financials"][0]
         print(annual_income_statements)
     except Exception as e:
         print("Error:", e)
@@ -421,14 +464,17 @@ async def analyze_main(
     # except Exception as e:
     #     print("Error:", e)
 
-    # eps_estimates = {"data": []}  # Default value if None
-    # try:
-    #     eps_estimates = finnhub_client.company_eps_estimates(symbol, "quarterly")
-    #     if eps_estimates is None:
-    #         eps_estimates = {"data": []}  # Default value if None
-    #     print(eps_estimates)
-    # except Exception as e:
-    #     print("Error:", e)
+    eps_estimates = {"data": []}  # Default value if None
+    try:
+        eps = finnhub_client.company_eps_estimates(symbol, "annual")
+        if eps is None:
+            eps_estimates = {"data": []}  # Default value if None
+        else:
+            eps_estimates = [entry for entry in eps['data'] if entry['year'] == annual_income_statements['year'] + 1][0]
+
+        print(eps_estimates)
+    except Exception as e:
+        print("Error:", e)
 
     price_target={}
     try:
@@ -439,14 +485,14 @@ async def analyze_main(
 
     recommendation_trends=[]
     try:
-        recommendation_trends = finnhub_client.recommendation_trends(symbol)
+        recommendation_trends = finnhub_client.recommendation_trends(symbol)[0]
         print(recommendation_trends)
     except Exception as e:
         print("Error:", e)
 
     dividends=[]
     try:
-        dividends = finnhub_client.stock_dividends(symbol, _from=(datetime.utcnow() - timedelta(days=5*365)).strftime('%Y-%m-%d'), to=datetime.utcnow().strftime('%Y-%m-%d'))
+        dividends = finnhub_client.stock_dividends(symbol, _from=(datetime.utcnow() - timedelta(days=2*365)).strftime('%Y-%m-%d'), to=datetime.utcnow().strftime('%Y-%m-%d'))
         print(dividends)
     except Exception as e:
         print("Error:", e)
@@ -468,20 +514,17 @@ async def analyze_main(
 
     # Construct the final response
     response_data = {
-        "quarterly_income_statements": income_statements["financials"][:1],
-        "quarterly_cash_flow": cash_flow["financials"][:1],
-        "quarterly_balance_sheet": balance_sheet["financials"][:1],
-        "annual_income_statements": annual_income_statements["financials"][:1],
-        # "revenue_estimates": revenue_estimates["data"][:3],
-        # "ebit_estimates": ebit_estimates["data"][:3],
-        # "eps_estimates": eps_estimates["data"][:3],
+        "quarterly_income_statement": income_statements,
+        "quarterly_cash_flow": cash_flow,
+        "quarterly_balance_sheet": balance_sheet,
+        "annual_income_statement": annual_income_statements,
+        "eps_estimates": eps_estimates,
         "price_target": price_target,
-        "recommendation_trends": recommendation_trends[:1],
+        "recommendation_trends": recommendation_trends,
         "dividends": dividends,
         "insider_transactions": insider_transactions["data"][:20],
         "current_price": quote,
         "key_financials": key_ratios,
-        # "sector_ratios": sector_ratios,
         "key_risks": key_risks,
         "key_opportunities": key_opportunities,
         "forward_guidance": forward_guidance,
