@@ -267,6 +267,15 @@ def get_sector_by_symbol(symbol):
         return None
 
 
+def extract_texts(query_results):
+    # Extract texts from the list of QueryResult objects
+    texts = []
+    for query_result in query_results:
+        for document_chunk in query_result.results:
+            texts.append(document_chunk.text)
+    return texts
+
+
 @app.get(
     "/analyze",
 )
@@ -292,11 +301,11 @@ async def analyze_main(
 
         # Handle None for datastore query
         documents = await datastore.query(queries)
+        print(f"DOCUMENTS: {documents}")
 
         if documents is None:
             documents = []
-        query_response_dict = QueryResponse(results=documents).to_dict()
-        key_risks = query_response_dict['results'][0]['results'] if len(query_response_dict['results']) > 0 else []
+        key_risks = extract_texts(documents)
         print(f"KEY RISKS: {key_risks}")
 
     except Exception as e:
@@ -324,8 +333,7 @@ async def analyze_main(
 
         if documents is None:
             documents = []
-        query_response_dict = QueryResponse(results=documents).to_dict()
-        key_opportunities = query_response_dict['results'][0]['results'] if len(query_response_dict['results']) > 0 else []
+        key_opportunities = extract_texts(documents)
 
         print(f"KEY OPPORTUNITIES: {key_opportunities}")
 
@@ -355,8 +363,7 @@ async def analyze_main(
 
         if documents is None:
             documents = []
-        query_response_dict = QueryResponse(results=documents).to_dict()
-        forward_guidance = query_response_dict['results'][0]['results'] if len(query_response_dict['results']) > 0 else []
+        forward_guidance = extract_texts(documents)
 
         print(f"FORWARD GUIDANCE: {forward_guidance}")
 
