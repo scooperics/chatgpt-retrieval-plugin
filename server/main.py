@@ -260,7 +260,7 @@ def get_sector_by_symbol(symbol):
                 else:
                     return None
         finally:
-            conn.close()  # Ensure the connection is closed
+            db_manager.put_conn(conn)
     except Exception as e:
         print("An error occurred:", e)
         # Handle the exception as needed
@@ -314,6 +314,8 @@ async def analyze_main(
 
         # Handle None for datastore query
         documents = await datastore.query(queries)
+        print(f"DOCUMENTS = {documents}")
+
         if documents is None:
             documents = []
         query_response_dict = QueryResponse(results=documents).to_dict()
@@ -395,32 +397,38 @@ async def analyze_main(
     except Exception as e:
         print("Error:", e)
 
-    revenue_estimates = {"data": []}  # Default value if None
-    try:
-        revenue_estimates = finnhub_client.company_revenue_estimates(symbol, "quarterly")
-        if revenue_estimates is None:
-            revenue_estimates = {"data": []}  # Default value if None
-        print(revenue_estimates)
-    except Exception as e:
-        print("Error:", e)
 
-    ebit_estimates = {"data": []}  # Default value if None
-    try:
-        ebit_estimates = finnhub_client.company_ebit_estimates(symbol, "quarterly")
-        if ebit_estimates is None:
-            ebit_estimates = {"data": []}  # Default value if None
-        print(ebit_estimates)
-    except Exception as e:
-        print("Error:", e)
+    # Prefixing 'sector_' to the keys of sector_ratios and merging it into key_ratios
+    for key, value in sector_ratios.items():
+        prefixed_key = f'sector_{key}'
+        key_ratios[prefixed_key] = value
 
-    eps_estimates = {"data": []}  # Default value if None
-    try:
-        eps_estimates = finnhub_client.company_eps_estimates(symbol, "quarterly")
-        if eps_estimates is None:
-            eps_estimates = {"data": []}  # Default value if None
-        print(eps_estimates)
-    except Exception as e:
-        print("Error:", e)
+    # revenue_estimates = {"data": []}  # Default value if None
+    # try:
+    #     revenue_estimates = finnhub_client.company_revenue_estimates(symbol, "quarterly")
+    #     if revenue_estimates is None:
+    #         revenue_estimates = {"data": []}  # Default value if None
+    #     print(revenue_estimates)
+    # except Exception as e:
+    #     print("Error:", e)
+
+    # ebit_estimates = {"data": []}  # Default value if None
+    # try:
+    #     ebit_estimates = finnhub_client.company_ebit_estimates(symbol, "quarterly")
+    #     if ebit_estimates is None:
+    #         ebit_estimates = {"data": []}  # Default value if None
+    #     print(ebit_estimates)
+    # except Exception as e:
+    #     print("Error:", e)
+
+    # eps_estimates = {"data": []}  # Default value if None
+    # try:
+    #     eps_estimates = finnhub_client.company_eps_estimates(symbol, "quarterly")
+    #     if eps_estimates is None:
+    #         eps_estimates = {"data": []}  # Default value if None
+    #     print(eps_estimates)
+    # except Exception as e:
+    #     print("Error:", e)
 
     price_target={}
     try:
@@ -443,7 +451,7 @@ async def analyze_main(
     except Exception as e:
         print("Error:", e)
 
-    insider_transactions={}
+    insider_transactions={"data": []}
     try:
         insider_transactions = finnhub_client.stock_insider_transactions(symbol, (datetime.utcnow() - timedelta(days=60)).strftime('%Y-%m-%d'), datetime.utcnow().strftime('%Y-%m-%d'))
         print(insider_transactions)
@@ -464,16 +472,16 @@ async def analyze_main(
         "quarterly_cash_flow": cash_flow["financials"][:5],
         "quarterly_balance_sheet": balance_sheet["financials"][:5],
         "annual_income_statements": annual_income_statements["financials"][:5],
-        "revenue_estimates": revenue_estimates["data"][:3],
-        "ebit_estimates": ebit_estimates["data"][:3],
-        "eps_estimates": eps_estimates["data"][:3],
+        # "revenue_estimates": revenue_estimates["data"][:3],
+        # "ebit_estimates": ebit_estimates["data"][:3],
+        # "eps_estimates": eps_estimates["data"][:3],
         "price_target": price_target,
         "recommendation_trends": recommendation_trends[:5],
         "dividends": dividends,
         "insider_transactions": insider_transactions["data"][:20],
         "current_price": quote,
-        "key_ratios": key_ratios,
-        "sector_ratios": sector_ratios,
+        "key_financials": key_ratios,
+        # "sector_ratios": sector_ratios,
         "key_risks": key_risks,
         "key_opportunities": key_opportunities,
         "forward_guidance": forward_guidance,
