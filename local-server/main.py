@@ -462,15 +462,15 @@ async def analyze_main(
 
     # Construct the final response
     response_data = {
-        "quarterly_income_statements": income_statements["financials"][:5],
-        "quarterly_cash_flow": cash_flow["financials"][:5],
-        "quarterly_balance_sheet": balance_sheet["financials"][:5],
-        "annual_income_statements": annual_income_statements["financials"][:5],
+        "quarterly_income_statements": income_statements["financials"][:1],
+        "quarterly_cash_flow": cash_flow["financials"][:1],
+        "quarterly_balance_sheet": balance_sheet["financials"][:1],
+        "annual_income_statements": annual_income_statements["financials"][:1],
         # "revenue_estimates": revenue_estimates["data"][:3],
         # "ebit_estimates": ebit_estimates["data"][:3],
         # "eps_estimates": eps_estimates["data"][:3],
         "price_target": price_target,
-        "recommendation_trends": recommendation_trends[:5],
+        "recommendation_trends": recommendation_trends[:1],
         "dividends": dividends,
         "insider_transactions": insider_transactions["data"][:20],
         "current_price": quote,
