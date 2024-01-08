@@ -283,18 +283,19 @@ async def analyze_main(
     symbol: str = Query(...)
 ):
 
+
     key_risks = []
     try:
 
         queries = [
             ApiQuery(
-                query="What are the top risks the company is facing based on analyst questions and management commentary?",
+                query="What are the top business performance risks the company is facing based on analyst questions and management commentary?",
                 filter=DocumentMetadataFilter(
                     symbol=symbol,
                     form_types=[FormType._20_F, FormType._10_K, FormType._10_Q, FormType.earnings_transcript]
                 ),
                 sort_order="desc",
-                limit=4,
+                limit=2,
                 top_k=15
             ),
         ]
@@ -323,7 +324,7 @@ async def analyze_main(
                     form_types=[FormType._20_F, FormType._10_K, FormType._10_Q, FormType.earnings_transcript]
                 ),
                 sort_order="desc",
-                limit=4,
+                limit=2,
                 top_k=15
             ),
         ]
@@ -341,13 +342,12 @@ async def analyze_main(
         print("Error:", e)
 
 
-
     forward_guidance = []
     try:
 
         queries = [
             ApiQuery(
-                query="Forward Looking Guidance",
+                query="Management Guidance on Future Performance",
                 filter=DocumentMetadataFilter(
                     symbol=symbol,
                     form_types=[FormType._20_F, FormType._10_K, FormType._10_Q, FormType.earnings_transcript]
@@ -369,7 +369,6 @@ async def analyze_main(
 
     except Exception as e:
         print("Error:", e)
-
 
 
     # try:
@@ -596,6 +595,7 @@ class SearchRequest(BaseModel):
     market_cap_max: Optional[int] = None
     country: Optional[str] = None
     industry: Optional[str] = None
+    symbols: Optional[List[str]] = None
     query: str
     published_before_date: Optional[date] = None
     published_after_date: Optional[date] = None
@@ -626,6 +626,11 @@ async def search_main(request: SearchRequest = Body(...)):
         if request.industry:
             query_parts.append("industry = %s")
             params.append(request.industry)
+
+        if request.symbols:
+            symbols_placeholders = ', '.join(['%s'] * len(request.symbols))
+            query_parts.append(f"symbol IN ({symbols_placeholders})")
+            params.extend(request.symbols)
 
         # Construct the final JOIN query
         query = f"""

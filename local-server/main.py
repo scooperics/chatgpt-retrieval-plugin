@@ -282,10 +282,10 @@ async def analyze_main(
 
         queries = [
             ApiQuery(
-                query="Top Risks",
+                query="What are the top business performance risks the company is facing based on analyst questions and management commentary?",
                 filter=DocumentMetadataFilter(
                     symbol=symbol,
-                    form_types=[FormType._20_F, FormType._10_K, FormType._10_Q]
+                    form_types=[FormType._20_F, FormType._10_K, FormType._10_Q, FormType.earnings_transcript]
                 ),
                 sort_order="desc",
                 limit=2,
@@ -295,8 +295,8 @@ async def analyze_main(
 
         # Handle None for datastore query
         documents = await datastore.query(queries)
-
         print(f"DOCUMENTS: {documents}")
+
         if documents is None:
             documents = []
         key_risks = extract_texts(documents)
@@ -311,10 +311,10 @@ async def analyze_main(
 
         queries = [
             ApiQuery(
-                query="Top Opportunities",
+                query="What are the top opportunities the company has based on analyst questions and management commentary?",
                 filter=DocumentMetadataFilter(
                     symbol=symbol,
-                    form_types=[FormType._20_F, FormType._10_K, FormType._10_Q]
+                    form_types=[FormType._20_F, FormType._10_K, FormType._10_Q, FormType.earnings_transcript]
                 ),
                 sort_order="desc",
                 limit=2,
@@ -341,10 +341,10 @@ async def analyze_main(
 
         queries = [
             ApiQuery(
-                query="Forward Looking Guidance",
+                query="Management Guidance on Future Performance",
                 filter=DocumentMetadataFilter(
                     symbol=symbol,
-                    form_types=[FormType.earnings_transcript]
+                    form_types=[FormType._20_F, FormType._10_K, FormType._10_Q, FormType.earnings_transcript]
                 ),
                 sort_order="desc",
                 limit=2,
