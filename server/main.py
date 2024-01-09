@@ -589,6 +589,12 @@ async def filename_main(
             db_manager.put_conn(conn)
 
 
+class FinancialFilter(BaseModel):
+    financial_name: str
+    comparison: str  # ">=" or "<="
+    value: float
+
+
 # Define a new request model
 class SearchRequest(BaseModel):
     market_cap_min: Optional[int] = None
@@ -598,6 +604,7 @@ class SearchRequest(BaseModel):
     symbols: Optional[List[str]] = None
     query: List[str]  
     top_k: Optional[int] = 50 
+    financial_filters: Optional[List[FinancialFilter]] = None
     published_before_date: Optional[date] = None
     published_after_date: Optional[date] = None
     published_before_days_before_current: Optional[int] = None
@@ -633,12 +640,29 @@ async def search_main(request: SearchRequest = Body(...)):
             query_parts.append(f"symbol IN ({symbols_placeholders})")
             params.extend(request.symbols)
 
-        # Construct the final JOIN query
-        query = f"""
-            SELECT DISTINCT symbol 
-            FROM stocks 
-            WHERE {" AND ".join(query_parts)}
-        """
+        if request.financial_filters:
+            # Ensure to include the basic_financials table in the join
+            query_parts.append("stocks.symbol = basic_financials.symbol")
+
+            for filter in request.financial_filters:
+                # Directly use the comparison operator from the input
+                query_parts.append(f"basic_financials.{filter.financial_name} {filter.comparison} %s")
+                params.append(filter.value)
+
+            # Adjust the query to include the JOIN with basic_financials
+            query = f"""
+                SELECT DISTINCT stocks.symbol 
+                FROM stocks 
+                JOIN basic_financials ON {" AND ".join(query_parts)}
+            """
+        else:
+
+            # Construct the final JOIN query
+            query = f"""
+                SELECT DISTINCT symbol 
+                FROM stocks 
+                WHERE {" AND ".join(query_parts)}
+            """
 
         print(query)
         print(params)
