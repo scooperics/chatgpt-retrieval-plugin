@@ -596,7 +596,8 @@ class SearchRequest(BaseModel):
     country: Optional[str] = None
     industry: Optional[str] = None
     symbols: Optional[List[str]] = None
-    query: str
+    query: List[str]  
+    top_k: Optional[int] = 50 
     published_before_date: Optional[date] = None
     published_after_date: Optional[date] = None
     published_before_days_before_current: Optional[int] = None
@@ -701,12 +702,12 @@ async def search_main(request: SearchRequest = Body(...)):
 
         queries = [
             ApiQuery(
-                query=request.query,
+                query=q,
                 filter=DocumentMetadataFilter(
                     filenames=filenames,
                 ),
-                top_k=50
-            )
+                top_k=request.top_k 
+            ) for q in request.query
         ]
 
         # Handle None for datastore query
