@@ -741,82 +741,70 @@ async def search_main(request: SearchRequest = Body(...)):
         ]
         document_results = await datastore.query(queries)
 
+        # If financial filters were set, get the actual financials that were filtered on and add them to 
+        # the document metadata!  (brilliant eh?)
+        if request.financial_filters:
+
+            response = QueryResponse(results=document_results)
+
+            # get the unique symbols
+            unique_symbols = set()
+
+            for result_index, result in enumerate(response.results):
+                if result:
+                    for doc_index, document_chunk in enumerate(result.results):
+                        if document_chunk and document_chunk.metadata:
+                            symbol = document_chunk.metadata.symbol
+                            if symbol:
+                                unique_symbols.add(symbol)
+
+            query_facts = []
+            for filter in request.financial_filters:
+                # Directly use the comparison operator from the input
+                query_facts.append(f"basic_financials.{filter.financial_name}")
+
+            # Now unique_symbols contains all unique stock symbols from the query results
+            print(f"Unique symbols: {unique_symbols}")
+
+            # Fetch financial data for these symbols
+            financial_query = f"""
+                SELECT 
+                    symbol,
+                    {', '.join(query_facts)}
+                FROM basic_financials 
+                WHERE symbol IN %s
+            """
+
+            financial_data_dict = {}
+
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute(financial_query, (tuple(unique_symbols),))
+                financial_rows = cursor.fetchall()
+                
+                for row in financial_rows:
+                    symbol = row['symbol']
+                    financial_data_dict[symbol] = row
+
+            # now add the financial_data to the metadata.
+            for result_index, result in enumerate(response.results):
+                if result:
+                    for doc_index, document_chunk in enumerate(result.results):
+                        if document_chunk and document_chunk.metadata:
+                            document_chunk.metadata.financial_data = json.dumps(financial_data_dict[document_chunk.metadata.symbol])
+
         # Handle None for datastore query
         if document_results is None:
             serialized_document_results = []
         else:
             serialized_document_results = [result.to_dict() for result in document_results if result is not None]
 
-        # Extract unique symbols from document results
-        unique_symbols = set()
-        for result in serialized_document_results:
-            for doc in result['results']:
-                if doc['metadata']['symbol']:
-                    unique_symbols.add(doc['metadata']['symbol'])
-
-        # Fetch financial data for these symbols
-        financial_query = """
-            SELECT 
-                eps_growth_5y,
-                eps_growth_ttm_yoy,
-                current_dividend_yield_ttm,
-                current_ratio_annual,
-                dividend_growth_rate_5y,
-                ebitda_cagr_5y,
-                gross_margin_5y,
-                gross_margin_ttm,
-                insider_dollars_bought_one_month,
-                insider_dollars_bought_three_months,
-                insider_dollars_bought_ttm,
-                insider_dollars_sold_one_month,
-                insider_dollars_sold_three_months,
-                insider_dollars_sold_ttm,
-                insider_dollars_buy_sell_ratio_one_month,
-                insider_dollars_buy_sell_ratio_three_months,
-                insider_dollars_buy_sell_ratio_ttm,
-                long_term_debt_equity_annual,
-                market_capitalization,
-                net_profit_margin_5y,
-                net_profit_margin_ttm,
-                operating_margin_5y,
-                operating_margin_ttm,
-                payout_ratio_ttm,
-                pe_ttm,
-                pfcf_share_ttm,
-                ps_ttm,
-                quick_ratio_annual,
-                revenue_growth_5y,
-                revenue_growth_ttm_yoy,
-                roa_5y,
-                roa_ttm,
-                roe_5y,
-                roe_ttm,
-                roi_5y,
-                roi_ttm,
-                total_debt_total_equity_annual 
-            FROM basic_financials 
-            WHERE symbol IN %s
-        """
-        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-            cursor.execute(financial_query, (tuple(unique_symbols),))
-            financial_data = cursor.fetchall()
-
-        # Combine the document results with the financial data
-        combined_results = []
-        for result in serialized_document_results:
-            for doc in result['results']:
-                symbol = doc['metadata']['symbol']
-                financial_info = next((item for item in financial_data if item['symbol'] == symbol), None)
-                combined_result = {
-                    'document_data': doc,
-                    'financial_data': financial_info
-                }
-                combined_results.append(combined_result)
-
-        json_response_data = json.dumps(combined_results)
+        # Now `financial_data_dict` is a dictionary with each symbol as a key
+        json_response_data = json.dumps(serialized_document_results)
         print(f"/search output for request {request}: {json_response_data}")
 
         return JsonResponse(results=json_response_data)
+
+
 
     except ValidationError as e:
         print("Validation Error:", e.json())

@@ -34,6 +34,7 @@ class DocumentMetadata(BaseModel):
     fiscal_quarter: Optional[int] = None
     fiscal_year: Optional[int] = None
     is_xbrl: Optional[bool] = None
+    financial_data: Optional[str] = None
 
 
 class DocumentChunkMetadata(DocumentMetadata):

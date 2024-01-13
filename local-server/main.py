@@ -1,6 +1,6 @@
 # This is a version of the main.py file found in ../../../server/main.py for testing the plugin locally.
 # Use the command `poetry run dev` to run this.
-from typing import Optional
+from typing import Union, List, Optional
 import uvicorn
 from fastapi import FastAPI, File, Form, HTTPException, Body, UploadFile
 
@@ -29,6 +29,8 @@ from fastapi import Query
 from psycopg2.extras import RealDictCursor
 
 from datastore.providers.database import DatabaseManager
+from datetime import date
+from pydantic import ValidationError
 
 import finnhub
 from datetime import datetime, timedelta
@@ -44,6 +46,7 @@ from models.models import (
     Query as ApiQuery, 
     FormType,   
 )
+from pydantic import BaseModel
 
 FINHUB_API_KEY = os.environ.get("FINHUB_API_KEY")
 finnhub_client = finnhub.Client(api_key=FINHUB_API_KEY)
@@ -365,15 +368,6 @@ async def analyze_main(
         print("Error:", e)
 
 
-
-    # try:
-    #     news = finnhub_client.company_news(symbol, _from=(datetime.utcnow() - timedelta(days=5)).strftime('%Y-%m-%d'), to=datetime.utcnow().strftime('%Y-%m-%d'))
-    #     if news is None:
-    #         news = []  # Default value if None
-    #     print(f"NEWS: {news}")
-    # except Exception as e:
-    #     print("Error:", e)
-
     income_statements = {"financials": []}  # Default value if None
     try:
         income_statements = finnhub_client.financials(symbol, "ic", "quarterly")
@@ -536,6 +530,234 @@ async def analyze_main(
 
     return JsonResponse(results=json_response_data)
 
+
+
+
+class FinancialFilter(BaseModel):
+    financial_name: str
+    comparison: str  # ">=" or "<="
+    value: float
+
+
+# Define a new request model
+class SearchRequest(BaseModel):
+    market_cap_min: Optional[int] = None
+    market_cap_max: Optional[int] = None
+    country: Optional[str] = None
+    industry: Optional[str] = None
+    symbols: Optional[List[str]] = None
+    query: Union[List[str], str]  # Depending on the assistant, it will send either a string or an list of strings.
+    top_k: Optional[int] = 30 
+    financial_filters: Optional[List[FinancialFilter]] = None
+    published_before_date: Optional[date] = None
+    published_after_date: Optional[date] = None
+    published_before_days_before_current: Optional[int] = None
+    published_after_days_before_current: Optional[int] = None
+    form_types: Optional[List[str]] = None 
+
+@app.post("/search")
+async def search_main(request: SearchRequest = Body(...)):
+    conn = db_manager.get_conn()
+    try:
+
+        # Check if the query input is a string
+        if isinstance(request.query, str):
+            # If the string is empty, replace it with the default query
+            if request.query.strip() == '':
+                request.query = ["General information about the company"]
+            else:
+                # If it's a non-empty string, convert it to a list
+                request.query = [request.query]
+        elif isinstance(request.query, list):
+            # If the query is a list, replace any empty strings with the default query
+            request.query = [q if q.strip() != '' else "General information about the company" for q in request.query]
+
+        # Construct the query for stocks table with a JOIN on source_file_metadata
+        query_parts = ["1=1"]  # This is a placeholder to simplify query building
+        params = []
+
+        # Add conditions for existing filters
+        if request.market_cap_min is not None or request.market_cap_max is not None:
+            market_cap_min = request.market_cap_min if request.market_cap_min is not None else 0
+            market_cap_max = request.market_cap_max if request.market_cap_max is not None else 1e12  # A large number to represent 'infinity'
+            query_parts.append("market_cap BETWEEN %s AND %s")
+            params.extend([market_cap_min, market_cap_max])
+
+        if request.country:
+            query_parts.append("country = %s")
+            params.append(request.country)
+
+        if request.industry:
+            query_parts.append("industry = %s")
+            params.append(request.industry)
+
+        if request.symbols:
+            symbols_placeholders = ', '.join(['%s'] * len(request.symbols))
+            query_parts.append(f"symbol IN ({symbols_placeholders})")
+            params.extend(request.symbols)
+
+        if request.financial_filters:
+            # Ensure to include the basic_financials table in the join
+            query_parts.append("stocks.symbol = basic_financials.symbol")
+
+            for filter in request.financial_filters:
+                # Directly use the comparison operator from the input
+                query_parts.append(f"basic_financials.{filter.financial_name} {filter.comparison} %s")
+                params.append(filter.value)
+
+            # Adjust the query to include the JOIN with basic_financials
+            query = f"""
+                SELECT DISTINCT stocks.symbol 
+                FROM stocks 
+                JOIN basic_financials ON {" AND ".join(query_parts)}
+            """
+        else:
+
+            # Construct the final JOIN query
+            query = f"""
+                SELECT DISTINCT symbol 
+                FROM stocks 
+                WHERE {" AND ".join(query_parts)}
+            """
+
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            cursor.execute(query, tuple(params))
+            symbols = [row['symbol'] for row in cursor.fetchall()]
+
+        query_parts = ["1=1"]  # This is a placeholder to simplify query building
+        params = []
+
+        # Add conditions for new filters (joining with source_file_metadata table)
+        if request.published_before_date:
+            query_parts.append("published_date <= %s")
+            params.append(request.published_before_date)
+
+        if request.published_before_days_before_current:
+            days_before = request.published_before_days_before_current
+            target_date = datetime.now() - timedelta(days=days_before)
+            query_parts.append("published_date <= %s")
+            params.append(target_date.date())  # Use .date() to get the date part without time
+
+        if request.published_after_date:
+            query_parts.append("published_date >= %s")
+            params.append(request.published_after_date)
+
+        if request.published_after_days_before_current:
+            days_before = request.published_after_days_before_current
+            target_date = datetime.now() - timedelta(days=days_before)
+            query_parts.append("published_date >= %s")
+            params.append(target_date.date())  # Use .date() to get the date part without time
+
+        if request.form_types:
+            form_types_placeholders = ', '.join(['%s'] * len(request.form_types))
+            query_parts.append(f"form_type IN ({form_types_placeholders})")
+            params.extend(request.form_types)
+
+        if symbols:
+            query = f"""
+                SELECT filename
+                FROM source_file_metadata
+                WHERE in_vector_db = true AND symbol IN ('{"', '".join(symbols)}') AND {" AND ".join(query_parts)}
+            """
+        else:
+            query = f"""
+                SELECT filename
+                FROM source_file_metadata
+                WHERE in_vector_db = true AND {" AND ".join(query_parts)}
+            """
+
+        # Execute query to get filenames
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            cursor.execute(query, tuple(params))
+            filenames = [row['filename'] for row in cursor.fetchall()]
+
+        # Execute the datastore query
+        queries = [
+            ApiQuery(
+                query=q,
+                filter=DocumentMetadataFilter(
+                    filenames=filenames,
+                ),
+                top_k=request.top_k 
+            ) for q in request.query
+        ]
+        document_results = await datastore.query(queries)
+
+
+        # If financial filters were set, get the actual financials that were filtered on and add them to 
+        # the document metadata!  (brilliant eh?)
+        if request.financial_filters:
+
+            response = QueryResponse(results=document_results)
+
+            # get the unique symbols
+            unique_symbols = set()
+
+            for result_index, result in enumerate(response.results):
+                if result:
+                    for doc_index, document_chunk in enumerate(result.results):
+                        if document_chunk and document_chunk.metadata:
+                            symbol = document_chunk.metadata.symbol
+                            if symbol:
+                                unique_symbols.add(symbol)
+
+            query_facts = []
+            for filter in request.financial_filters:
+                # Directly use the comparison operator from the input
+                query_facts.append(f"basic_financials.{filter.financial_name}")
+
+            # Now unique_symbols contains all unique stock symbols from the query results
+            print(f"Unique symbols: {unique_symbols}")
+
+            # Fetch financial data for these symbols
+            financial_query = f"""
+                SELECT 
+                    symbol,
+                    {', '.join(query_facts)}
+                FROM basic_financials 
+                WHERE symbol IN %s
+            """
+
+            financial_data_dict = {}
+
+            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+                cursor.execute(financial_query, (tuple(unique_symbols),))
+                financial_rows = cursor.fetchall()
+                
+                for row in financial_rows:
+                    symbol = row['symbol']
+                    financial_data_dict[symbol] = row
+
+            # now add the financial_data to the metadata.
+            for result_index, result in enumerate(response.results):
+                if result:
+                    for doc_index, document_chunk in enumerate(result.results):
+                        if document_chunk and document_chunk.metadata:
+                            document_chunk.metadata.financial_data = json.dumps(financial_data_dict[document_chunk.metadata.symbol])
+
+        # Handle None for datastore query
+        if document_results is None:
+            serialized_document_results = []
+        else:
+            serialized_document_results = [result.to_dict() for result in document_results if result is not None]
+
+        # Now `financial_data_dict` is a dictionary with each symbol as a key
+        json_response_data = json.dumps(serialized_document_results)
+        print(f"/search output for request {request}: {json_response_data}")
+
+        return JsonResponse(results=json_response_data)
+
+
+
+    except ValidationError as e:
+        print("Validation Error:", e.json())
+        raise HTTPException(status_code=400, detail=f"Input validation error: {e}")
+    except Exception as e:
+        print("Error:", e)
+        raise HTTPException(status_code=500, detail="Internal Service Error")
+    finally:
+        if conn:
+            db_manager.put_conn(conn)
 
 
 
