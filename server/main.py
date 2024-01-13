@@ -12,7 +12,7 @@ from datastore.providers.database import DatabaseManager
 from psycopg2.extras import RealDictCursor
 from pydantic import BaseModel
 from datetime import date
-
+from pydantic import ValidationError
 
 
 import finnhub
@@ -111,8 +111,8 @@ async def query_main(
     request: QueryRequest = Body(...),
 ):
     try:
-        print("GOT QUERY REQUEST:")
-        print(request)
+        # print("GOT QUERY REQUEST:")
+        # print(request)
         results = await datastore.query(
             request.queries,
         )
@@ -302,12 +302,12 @@ async def analyze_main(
 
         # Handle None for datastore query
         documents = await datastore.query(queries)
-        print(f"DOCUMENTS: {documents}")
+        # print(f"DOCUMENTS: {documents}")
 
         if documents is None:
             documents = []
         key_risks = extract_texts(documents)
-        print(f"KEY RISKS: {key_risks}")
+        # print(f"KEY RISKS: {key_risks}")
 
     except Exception as e:
         print("Error:", e)
@@ -336,7 +336,7 @@ async def analyze_main(
             documents = []
         key_opportunities = extract_texts(documents)
 
-        print(f"KEY OPPORTUNITIES: {key_opportunities}")
+        # print(f"KEY OPPORTUNITIES: {key_opportunities}")
 
     except Exception as e:
         print("Error:", e)
@@ -365,7 +365,7 @@ async def analyze_main(
             documents = []
         forward_guidance = extract_texts(documents)
 
-        print(f"FORWARD GUIDANCE: {forward_guidance}")
+        # print(f"FORWARD GUIDANCE: {forward_guidance}")
 
     except Exception as e:
         print("Error:", e)
@@ -386,7 +386,7 @@ async def analyze_main(
             income_statements = {"financials": []}  # Default value if None
         else:
             income_statements = income_statements["financials"][0]
-        print(income_statements)
+        # print(income_statements)
     except Exception as e:
         print("Error:", e)
 
@@ -397,7 +397,7 @@ async def analyze_main(
             cash_flow = {"financials": []}  # Default value if None
         else:
             cash_flow = cash_flow["financials"][0]
-        print(cash_flow)
+        # print(cash_flow)
     except Exception as e:
         print("Error:", e)
 
@@ -408,7 +408,7 @@ async def analyze_main(
             balance_sheet = {"financials": []}  # Default value if None
         else:
             balance_sheet = balance_sheet["financials"][0]
-        print(balance_sheet)
+        # print(balance_sheet)
     except Exception as e:
         print("Error:", e)
 
@@ -419,7 +419,7 @@ async def analyze_main(
             annual_income_statements = {"financials": []}  # Default value if None
         else:
             annual_income_statements = annual_income_statements["financials"][0]
-        print(annual_income_statements)
+        # print(annual_income_statements)
     except Exception as e:
         print("Error:", e)
 
@@ -430,7 +430,7 @@ async def analyze_main(
             key_ratios = {"metric": {}}  # Default value if None
         else:
             key_ratios = extract_financial_ratios(key_ratios["metric"])
-        print(key_ratios)
+        # print(key_ratios)
     except Exception as e:
         print("Error:", e)
 
@@ -442,7 +442,7 @@ async def analyze_main(
             sector_ratios = {"metric": {}}  # Default value if None
         else:
             sector_ratios = extract_financial_ratios(extract_metrics(raw_sector_ratios, 'NA', get_sector_by_symbol(symbol)))
-        print(sector_ratios)
+        # print(sector_ratios)
     except Exception as e:
         print("Error:", e)
 
@@ -478,45 +478,48 @@ async def analyze_main(
         else:
             eps_estimates = [entry for entry in eps['data'] if entry['year'] == annual_income_statements['year'] + 1][0]
 
-        print(eps_estimates)
+        # print(eps_estimates)
     except Exception as e:
         print("Error:", e)
 
     price_target={}
     try:
         price_target = finnhub_client.price_target(symbol)
-        print(price_target)
+        # print(price_target)
     except Exception as e:
         print("Error:", e)
 
     recommendation_trends=[]
     try:
         recommendation_trends = finnhub_client.recommendation_trends(symbol)[0]
-        print(recommendation_trends)
+        # print(recommendation_trends)
     except Exception as e:
         print("Error:", e)
 
     dividends=[]
     try:
         dividends = finnhub_client.stock_dividends(symbol, _from=(datetime.utcnow() - timedelta(days=2*365)).strftime('%Y-%m-%d'), to=datetime.utcnow().strftime('%Y-%m-%d'))
-        print(dividends)
+        # print(dividends)
     except Exception as e:
         print("Error:", e)
 
     insider_transactions={"data": []}
     try:
         insider_transactions = finnhub_client.stock_insider_transactions(symbol, (datetime.utcnow() - timedelta(days=60)).strftime('%Y-%m-%d'), datetime.utcnow().strftime('%Y-%m-%d'))
-        print(insider_transactions)
+        # print(insider_transactions)
     except Exception as e:
         print("Error:", e)
 
     quote={}
     try:
         quote = finnhub_client.quote(symbol)
-        print(quote)
+        # print(quote)
     except Exception as e:
         print("Error:", e)
 
+
+    # Merge the three arrays into a single array
+    risks_opportunities_and_guidance = key_risks + key_opportunities + forward_guidance
 
     # Construct the final response
     response_data = {
@@ -531,13 +534,11 @@ async def analyze_main(
         "insider_transactions": insider_transactions["data"][:20],
         "current_price": quote,
         "key_financials": key_ratios,
-        "key_risks": key_risks,
-        "key_opportunities": key_opportunities,
-        "forward_guidance": forward_guidance,
+        "risks_opportunities_and_guidance": risks_opportunities_and_guidance,
     }
 
-    print(response_data)
     json_response_data = json.dumps(response_data)
+    print(f"/analyze output for stock {symbol}: {json_response_data}")
 
     return JsonResponse(results=json_response_data)
 
@@ -564,7 +565,7 @@ async def filename_main(
     request: FilenamesRequest = Body(...)
 ):
     try:
-        print(request)
+        # print(request)
         symbols=request.symbols
         conn = db_manager.get_conn()
         with conn.cursor(cursor_factory=RealDictCursor) as cursor:
@@ -579,6 +580,7 @@ async def filename_main(
             filenames = cursor.fetchall()
 
         json_response_data = json.dumps(filenames)
+        print(f"/filenames output for stocks {symbols}: {json_response_data}")
         return JsonResponse(results=json_response_data)
 
     except Exception as e:
@@ -664,13 +666,9 @@ async def search_main(request: SearchRequest = Body(...)):
                 WHERE {" AND ".join(query_parts)}
             """
 
-        print(query)
-        print(params)
-
         with conn.cursor(cursor_factory=RealDictCursor) as cursor:
             cursor.execute(query, tuple(params))
             symbols = [row['symbol'] for row in cursor.fetchall()]
-        print(symbols)
 
         query_parts = ["1=1"]  # This is a placeholder to simplify query building
         params = []
@@ -714,15 +712,15 @@ async def search_main(request: SearchRequest = Body(...)):
                 WHERE in_vector_db = true AND {" AND ".join(query_parts)}
             """
 
-        print(query)
-        print(params)
+        # print(query)
+        # print(params)
 
         # Continue with the existing logic using the obtained symbols or all symbols if none were filtered
         with conn.cursor(cursor_factory=RealDictCursor) as cursor:
             cursor.execute(query, tuple(params))
             filenames = [row['filename'] for row in cursor.fetchall()]
 
-        print(f"FILENAMES: {filenames}")
+        # print(f"FILENAMES: {filenames}")
 
         queries = [
             ApiQuery(
@@ -742,16 +740,19 @@ async def search_main(request: SearchRequest = Body(...)):
             serialized_document_results = [result.dict() for result in document_results if result is not None]
 
         json_response_data = json.dumps(serialized_document_results)
+        print(f"/search output for request {request}: {json_response_data}")
 
         return JsonResponse(results=json_response_data)
 
+    except ValidationError as e:
+        print("Validation Error:", e.json())
+        raise HTTPException(status_code=400, detail=f"Input validation error: {e}")
     except Exception as e:
         print("Error:", e)
         raise HTTPException(status_code=500, detail="Internal Service Error")
     finally:
         if conn:
             db_manager.put_conn(conn)
-
 
 @app.get(
     "/financial-statements",
