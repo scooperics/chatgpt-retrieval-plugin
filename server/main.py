@@ -1,5 +1,5 @@
 import os
-from typing import Optional, List
+from typing import Union, List, Optional
 import json
 import uvicorn
 from fastapi import FastAPI, File, Form, HTTPException, Depends, Body, UploadFile
@@ -604,7 +604,7 @@ class SearchRequest(BaseModel):
     country: Optional[str] = None
     industry: Optional[str] = None
     symbols: Optional[List[str]] = None
-    query: List[str]  
+    query: Union[List[str], str]  # Depending on the assistant, it will send either a string or an list of strings.
     top_k: Optional[int] = 50 
     financial_filters: Optional[List[FinancialFilter]] = None
     published_before_date: Optional[date] = None
@@ -617,6 +617,18 @@ class SearchRequest(BaseModel):
 async def search_main(request: SearchRequest = Body(...)):
     conn = db_manager.get_conn()
     try:
+
+        # Check if the query input is a string
+        if isinstance(request.query, str):
+            # If the string is empty, replace it with the default query
+            if request.query.strip() == '':
+                request.query = ["General information about the company"]
+            else:
+                # If it's a non-empty string, convert it to a list
+                request.query = [request.query]
+        elif isinstance(request.query, list):
+            # If the query is a list, replace any empty strings with the default query
+            request.query = [q if q.strip() != '' else "General information about the company" for q in request.query]
 
         # Construct the query for stocks table with a JOIN on source_file_metadata
         query_parts = ["1=1"]  # This is a placeholder to simplify query building
