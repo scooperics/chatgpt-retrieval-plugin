@@ -724,16 +724,12 @@ async def search_main(request: SearchRequest = Body(...)):
                 WHERE in_vector_db = true AND {" AND ".join(query_parts)}
             """
 
-        # print(query)
-        # print(params)
-
-        # Continue with the existing logic using the obtained symbols or all symbols if none were filtered
+        # Execute query to get filenames
         with conn.cursor(cursor_factory=RealDictCursor) as cursor:
             cursor.execute(query, tuple(params))
             filenames = [row['filename'] for row in cursor.fetchall()]
 
-        # print(f"FILENAMES: {filenames}")
-
+        # Execute the datastore query
         queries = [
             ApiQuery(
                 query=q,
@@ -743,15 +739,81 @@ async def search_main(request: SearchRequest = Body(...)):
                 top_k=request.top_k 
             ) for q in request.query
         ]
+        document_results = await datastore.query(queries)
 
         # Handle None for datastore query
-        document_results = await datastore.query(queries)
         if document_results is None:
             serialized_document_results = []
         else:
-            serialized_document_results = [result.dict() for result in document_results if result is not None]
+            serialized_document_results = [result.to_dict() for result in document_results if result is not None]
 
-        json_response_data = json.dumps(serialized_document_results)
+        # Extract unique symbols from document results
+        unique_symbols = set()
+        for result in serialized_document_results:
+            for doc in result['results']:
+                if doc['metadata']['symbol']:
+                    unique_symbols.add(doc['metadata']['symbol'])
+
+        # Fetch financial data for these symbols
+        financial_query = """
+            SELECT 
+                eps_growth_5y,
+                eps_growth_ttm_yoy,
+                current_dividend_yield_ttm,
+                current_ratio_annual,
+                dividend_growth_rate_5y,
+                ebitda_cagr_5y,
+                gross_margin_5y,
+                gross_margin_ttm,
+                insider_dollars_bought_one_month,
+                insider_dollars_bought_three_months,
+                insider_dollars_bought_ttm,
+                insider_dollars_sold_one_month,
+                insider_dollars_sold_three_months,
+                insider_dollars_sold_ttm,
+                insider_dollars_buy_sell_ratio_one_month,
+                insider_dollars_buy_sell_ratio_three_months,
+                insider_dollars_buy_sell_ratio_ttm,
+                long_term_debt_equity_annual,
+                market_capitalization,
+                net_profit_margin_5y,
+                net_profit_margin_ttm,
+                operating_margin_5y,
+                operating_margin_ttm,
+                payout_ratio_ttm,
+                pe_ttm,
+                pfcf_share_ttm,
+                ps_ttm,
+                quick_ratio_annual,
+                revenue_growth_5y,
+                revenue_growth_ttm_yoy,
+                roa_5y,
+                roa_ttm,
+                roe_5y,
+                roe_ttm,
+                roi_5y,
+                roi_ttm,
+                total_debt_total_equity_annual 
+            FROM basic_financials 
+            WHERE symbol IN %s
+        """
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            cursor.execute(financial_query, (tuple(unique_symbols),))
+            financial_data = cursor.fetchall()
+
+        # Combine the document results with the financial data
+        combined_results = []
+        for result in serialized_document_results:
+            for doc in result['results']:
+                symbol = doc['metadata']['symbol']
+                financial_info = next((item for item in financial_data if item['symbol'] == symbol), None)
+                combined_result = {
+                    'document_data': doc,
+                    'financial_data': financial_info
+                }
+                combined_results.append(combined_result)
+
+        json_response_data = json.dumps(combined_results)
         print(f"/search output for request {request}: {json_response_data}")
 
         return JsonResponse(results=json_response_data)
