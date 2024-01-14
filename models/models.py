@@ -19,6 +19,7 @@ class FormType(str, Enum):
     S_1 = "S-1"
     S_3 = "S-3"
     _20_F = "20-F"
+    _40_F = "40-F"
     _6_K = "6-K"
 
 
