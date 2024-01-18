@@ -618,8 +618,12 @@ async def search_main(request: SearchRequest = Body(...)):
     conn = db_manager.get_conn()
     try:
 
+        # if there is no query
+        if request.query is None:
+            request.query = ["General information about the company"]
+
         # Check if the query input is a string
-        if isinstance(request.query, str):
+        elif isinstance(request.query, str):
             # If the string is empty, replace it with the default query
             if request.query.strip() == '':
                 request.query = ["General information about the company"]
