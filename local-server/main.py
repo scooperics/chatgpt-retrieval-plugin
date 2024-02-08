@@ -272,6 +272,107 @@ def extract_texts(query_results):
     return texts
 
 
+
+
+class UserRequest(BaseModel):
+    symbol: str
+
+@app.post("/fine-tune-income-statement-user-request")
+async def fine_tune_income_statement_user_request(request: UserRequest):
+    symbol = request.symbol
+    financial_statement_data = []
+    try:
+
+        queries = [
+            ApiQuery(
+                query='Income Statement',
+                filter=DocumentMetadataFilter(
+                    symbol=symbol,
+                    form_types=[FormType._10_K, FormType._10_Q],
+                    xbrl_only=True
+                ),
+                sort_order="desc",
+                limit=1,
+                top_k=15,
+            ),
+        ]
+
+        # Handle None for datastore query
+        documents = await datastore.query(queries)
+
+        if documents is None:
+            documents = []
+        financial_statement_data = extract_texts(documents)
+        print(f"Financial Statement Data: {financial_statement_data}")
+
+    except Exception as e:
+        print("Error:", e)
+
+    # Prepare system and user messages
+    system_message = """You are an assistant expert at parsing income_statement data and 
+    converting it to a JSON that looks like this {"costOfGoodsSold":?,"dilutedAverageSharesOutstanding":?,"dilutedEPS":?,"ebit":?,"grossIncome":?,"netIncome":?,"netIncomeAfterTaxes":?,"period":"YYYY-MM-DD","pretaxIncome":?,"provisionforIncomeTaxes":?,"researchDevelopment":?,"revenue":?,"sgaExpense":?,"totalOperatingExpense":?,"totalOtherIncomeExpenseNet":?}.
+    You will always convert the ? to the values in millions from the context in the user message and you will replace YYYY-MM-DD with the reporting date."""
+    
+    user_message = f"Create the income statement JSON from this context:  {financial_statement_data}"
+
+    try:
+        # Connect to your PostgreSQL database
+        conn = db_manager.get_conn()
+
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            # Find the current largest message_example_id
+            cursor.execute("SELECT MAX(message_example_id) FROM fine_tunes WHERE prompt_name = 'Income Statement';")
+            max_id_row = cursor.fetchone()
+            next_message_example_id = max_id_row[0] + 1 if max_id_row[0] is not None else 1
+
+            # Insert rows
+            insert_query = """
+            INSERT INTO fine_tunes (content, prompt_name, role, training_data, message_example_id, created_at, updated_at) VALUES 
+            (%s, 'Income Statement', 'system', TRUE, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+            (%s, 'Income Statement', 'user', TRUE, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+            """
+            cursor.execute(insert_query, (system_message, next_message_example_id, user_message, next_message_example_id))
+            conn.commit()
+
+        db_manager.put_conn(conn)
+
+    except Exception as e:
+        print("Error:", e)
+
+    return {"message": "Data inserted successfully"}
+
+
+class AssistantResponse(BaseModel):
+    assistant_message: str
+
+@app.post("/fine-tune-income-statement-assistant-response")
+async def fine_tune_income_statement_assistant_response(request: AssistantResponse):
+    assistant_message = request.assistant_message
+    try:
+        # Connect to your PostgreSQL database
+        conn = db_manager.get_conn()
+
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            # Find the current largest message_example_id
+            cursor.execute("SELECT MAX(message_example_id) FROM fine_tunes WHERE prompt_name = 'Income Statement';")
+            max_id_row = cursor.fetchone()
+
+            insert_query = """
+            INSERT INTO fine_tunes (content, prompt_name, role, training_data, message_example_id, created_at, updated_at) VALUES 
+            ($1, 'Income Statement', 'assistant', TRUE, $2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+            """
+            cursor.execute(insert_query, (assistant_message, max_id_row))
+            conn.commit()
+
+        db_manager.put_conn(conn)
+
+    except Exception as e:
+        print("Error:", e)
+
+    return {"message": "Data inserted successfully"}
+
+
+
 @app.get(
     "/analyze",
 )

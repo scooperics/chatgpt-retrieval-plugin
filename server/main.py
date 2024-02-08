@@ -276,6 +276,137 @@ def extract_texts(query_results):
     return texts
 
 
+
+
+class UserRequest(BaseModel):
+    symbol: str
+
+@app.post("/fine-tune-income-statement-user-request")
+async def fine_tune_income_statement_user_request(request: UserRequest):
+    symbol = request.symbol
+    financial_statement_data = []
+    try:
+
+        queries = [
+            ApiQuery(
+                query='Income Statement',
+                filter=DocumentMetadataFilter(
+                    symbol=symbol,
+                    form_types=[FormType._10_K, FormType._10_Q],
+                    xbrl_only=True
+                ),
+                sort_order="desc",
+                limit=1,
+                top_k=40,
+            ),
+        ]
+
+        financial_statement_data = await datastore.query(queries)
+
+        # Prepare system and user messages
+        system_message = """You are an assistant expert at parsing income_statement data and 
+        converting it to a JSON that looks like this {"costOfGoodsSold":?,"dilutedAverageSharesOutstanding":?,"dilutedEPS":?,"ebit":?,"grossIncome":?,"netIncome":?,"netIncomeAfterTaxes":?,"period":"YYYY-MM-DD","pretaxIncome":?,"provisionforIncomeTaxes":?,"researchDevelopment":?,"revenue":?,"sgaExpense":?,"totalOperatingExpense":?,"totalOtherIncomeExpenseNet":?}.
+        You will always convert the ? to the values in millions from the context in the user message and you will replace YYYY-MM-DD with the reporting date."""
+        
+        # Handle None for datastore query
+        if financial_statement_data is None:
+            serialized_financial_statement_data = []
+        else:
+            serialized_financial_statement_data = [result.to_dict() for result in financial_statement_data if result is not None]
+
+        json_response_data = json.dumps(serialized_financial_statement_data)
+        print(f"/fine-tune-income-statement-user-request: {json_response_data}")
+
+        user_message = f"Create the income statement JSON from this context:  {json_response_data}"
+
+        # Connect to your PostgreSQL database
+        conn = db_manager.get_conn()
+
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+
+            # Delete existing rows matching symbol and roles 'system' or 'user'
+            delete_query = """
+            DELETE FROM fine_tunes 
+            WHERE symbol = %s AND prompt_name = 'Income Statement';
+            """
+            cursor.execute(delete_query, (symbol,))
+
+            # Find the current largest message_example_id
+            cursor.execute("SELECT MAX(message_example_id) AS max_row FROM fine_tunes WHERE prompt_name = 'Income Statement';")
+            max_id_row = cursor.fetchone()
+            print(f"max_id_row: {max_id_row}")
+            next_message_example_id = max_id_row['max_row'] + 1 if max_id_row['max_row'] is not None else 1
+
+            # Insert rows
+            insert_query = """
+            INSERT INTO fine_tunes (symbol, content, prompt_name, role, training_data, message_example_id, created_at, updated_at) VALUES 
+            (%s, %s, 'Income Statement', 'system', TRUE, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+            (%s, %s, 'Income Statement', 'user', TRUE, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+            """
+            cursor.execute(insert_query, (symbol, system_message, next_message_example_id, symbol, user_message, next_message_example_id))
+            conn.commit()
+
+        db_manager.put_conn(conn)
+
+    except Exception as e:
+        print("Error:", e)
+
+    return JsonResponse(results=json_response_data)
+
+
+
+class AssistantResponse(BaseModel):
+    symbol: str
+    assistant_message: str
+
+@app.post("/fine-tune-income-statement-assistant-response")
+async def fine_tune_income_statement_assistant_response(request: AssistantResponse):
+    assistant_message = request.assistant_message
+    symbol = request.symbol
+    try:
+        # Connect to your PostgreSQL database
+        conn = db_manager.get_conn()
+
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+
+            # Delete existing rows matching symbol and role 'assistant'
+            delete_query = """
+            DELETE FROM fine_tunes 
+            WHERE symbol = %s AND prompt_name = 'Income Statement' AND role = 'assistant';
+            """
+            cursor.execute(delete_query, (symbol,))
+
+            # Find the message_example_id for a matching 'user' role entry
+            select_query = """
+            SELECT message_example_id FROM fine_tunes 
+            WHERE symbol = %s AND prompt_name = 'Income Statement' AND role = 'user'
+            ORDER BY created_at DESC
+            LIMIT 1;
+            """
+            cursor.execute(select_query, (symbol,))
+            match_row = cursor.fetchone()
+
+            # Proceed only if a matching user entry exists
+            if match_row:
+                message_example_id = match_row['message_example_id']
+
+                insert_query = """
+                INSERT INTO fine_tunes (symbol, content, prompt_name, role, training_data, message_example_id, created_at, updated_at) VALUES 
+                (%s, %s, 'Income Statement', 'assistant', TRUE, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+                """
+                cursor.execute(insert_query, (symbol, assistant_message, message_example_id))
+                conn.commit()
+            else:
+                print("No matching user entry found for symbol:", symbol)
+
+        db_manager.put_conn(conn)
+
+    except Exception as e:
+        print("Error:", e)
+
+    return {"message": "Data inserted successfully"}
+
+
 @app.get(
     "/analyze",
 )
