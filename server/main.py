@@ -276,25 +276,84 @@ def extract_texts(query_results):
     return texts
 
 
+def get_latest_press_release_filenames(symbol):
+    try:
+        # Connect to your PostgreSQL database
+        conn = db_manager.get_conn()
+        
+        filenames = []  # Initialize an empty list to store filenames
+
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            # Fetch the most recent published_date for earnings_transcript
+            query = """
+            SELECT published_date FROM source_file_metadata 
+            WHERE symbol = %s AND form_type = 'earnings_transcript'
+            ORDER BY published_date DESC
+            LIMIT 1;
+            """
+            cursor.execute(query, (symbol,))
+
+            result = cursor.fetchone()
+            if result:
+                published_date = result["published_date"]
+                start_date = published_date - timedelta(days=2)
+                end_date = published_date + timedelta(days=2)
+
+                # Fetch all filenames within the date range for specified form_types
+                earnings_press_release_query = """
+                SELECT filename FROM source_file_metadata 
+                WHERE symbol = %s AND form_type IN ('8-K', '6-K') AND published_date BETWEEN %s AND %s AND
+                to_tsvector('english', source_file_metadata.description) @@
+                to_tsquery('english', 'earnings | (financial & results) | (reports & fiscal)  | (results & fiscal) | (reports & quarter) | (results & quarter)')
+                """
+                cursor.execute(earnings_press_release_query, (symbol, start_date, end_date))
+                
+                # Process all fetched rows for filenames
+                rows = cursor.fetchall()
+                filenames = [row["filename"] for row in rows]  # Extract filenames
+
+        db_manager.put_conn(conn)  # Release the connection back to the pool
+        return filenames
+
+    except Exception as e:
+        print("Error:", e)
+        return []  # Return an empty list in case of error
+
+
 
 
 class UserRequest(BaseModel):
     symbol: str
+    from_press_release: Optional[bool] = False
+    xbrl_only: Optional[bool] = True
 
 @app.post("/fine-tune-income-statement-user-request")
 async def fine_tune_income_statement_user_request(request: UserRequest):
     symbol = request.symbol
+    from_press_release = request.from_press_release
+    xbrl_only = request.xbrl_only
     financial_statement_data = []
-    try:
 
+    if from_press_release:
+        filenames = get_latest_press_release_filenames(symbol)
+        print(f"LATEST PRESS RELEASE FILENAME: {filenames}")
+        filter = DocumentMetadataFilter(
+            symbol=symbol,
+            filenames=filenames,
+            xbrl_only=xbrl_only
+        )
+    else:
+        filter = DocumentMetadataFilter(
+            symbol=symbol,
+            form_types=[FormType._10_K, FormType._10_Q],
+            xbrl_only=xbrl_only
+        )
+
+    try:            
         queries = [
             ApiQuery(
                 query='Income Statement',
-                filter=DocumentMetadataFilter(
-                    symbol=symbol,
-                    form_types=[FormType._10_K, FormType._10_Q],
-                    xbrl_only=True
-                ),
+                filter=filter,
                 sort_order="desc",
                 limit=1,
                 top_k=40,
@@ -304,9 +363,7 @@ async def fine_tune_income_statement_user_request(request: UserRequest):
         financial_statement_data = await datastore.query(queries)
 
         # Prepare system and user messages
-        system_message = """You are an assistant expert at parsing income_statement data and 
-        converting it to a JSON that looks like this {"costOfGoodsSold":?,"dilutedAverageSharesOutstanding":?,"dilutedEPS":?,"ebit":?,"grossIncome":?,"netIncome":?,"netIncomeAfterTaxes":?,"period":"YYYY-MM-DD","pretaxIncome":?,"provisionforIncomeTaxes":?,"researchDevelopment":?,"revenue":?,"sgaExpense":?,"totalOperatingExpense":?,"totalOtherIncomeExpenseNet":?}.
-        You will always convert the ? to the values in millions from the context in the user message and you will replace YYYY-MM-DD with the reporting date."""
+        system_message = """You are an assistant expert at parsing income_statement data and converting it to a JSON.  ALWAYS GET QUARTERLY DATA if possible and then convert that data to a JSON that looks like this {"costOfGoodsSold":?, "dilutedAverageSharesOutstanding":?, "dilutedEPS":?, "ebit":?, "grossIncome":?, "interestIncome":?, "interestExpense":?, "netIncome":?, "netIncomeAfterTaxes":?, "otherOperatingExpensesTotal":?, "period":"YYYY-MM-DD", "pretaxIncome":?, "provisionforIncomeTaxes":?, "researchDevelopment":?, "revenue":?, "sgaExpense":?, "totalOperatingExpense":?, "nonRecurringItems":?, "gainLossOnDispositionOfAssets":?, ""minorityInterest :?, "equityEarningsAffiliates":? , "fiscal_year":?, "fiscal_quarter":?, "frequency": "annual or quarterly","currency":?}.  You will always convert the ? to the values in millions (for both dollars and shares) from the data provided and you will replace YYYY-MM-DD with the reporting date.  For the frequency put in either annual or quarterly.  Add the correct currency.  Always try for quarterly data if possible.  Never put in comments to this output, only include the JSON data.  ALWAYS infer missing data from other data if it is not explicitly provided."""
         
         # Handle None for datastore query
         if financial_statement_data is None:
