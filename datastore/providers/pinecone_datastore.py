@@ -134,19 +134,46 @@ class PineconeDataStore(DataStore):
                 if (query.filter.sort_order is not None) and (query.sort_order is None):
                     query.sort_order = query.filter.sort_order
 
+
             # Convert the metadata filter object to a dict with pinecone filter expressions
             pinecone_filter = self._get_pinecone_filter(query.filter, query.sort_order, query.limit)
             print(f"Pinecone Filter: {pinecone_filter}")
 
             try:
-                # Query the index with the query embedding, filter, and top_k
+                # Perform the initial query
                 query_response = self.index.query(
-                    # namespace=namespace,
                     top_k=query.top_k,
                     vector=query.embedding,
                     filter=pinecone_filter,
                     include_metadata=True,
                 )
+                print(f"Initial query response matches: {len(query_response.matches)}")  # Logging initial result count
+
+                # Check if there are no matches in the query response
+                if len(query_response.matches) < query.top_k:
+                    
+                    # Adjust the is_xbrl filter setting if it is set to True
+                    if 'is_xbrl' in pinecone_filter and pinecone_filter['is_xbrl']:
+
+                        additional_chunks = query.top_k - len(query_response.matches)
+                        print(f"Initial query didn't return enough chunks - need to add {additional_chunks} with xbrl = false.")
+
+                        pinecone_filter['is_xbrl'] = False  # Modify the filter dictionary for XBRL
+
+                        # Perform the query again with the updated filter
+                        additional_query_response = self.index.query(
+                            top_k=additional_chunks,
+                            vector=query.embedding,
+                            filter=pinecone_filter,
+                            include_metadata=True,
+                        )
+                        print(f"Re-query response matches: {len(additional_query_response.matches)}")  # Logging re-query result count
+                        print("Re-queried with is_xbrl set to False")
+
+                        # Combine results from the initial and supplementary queries
+                        query_response.matches.extend(additional_query_response.matches)
+
+
             except Exception as e:
                 print("QUERY ERROR")
                 print(f"Error querying index: {e}")
