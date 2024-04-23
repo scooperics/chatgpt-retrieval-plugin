@@ -160,6 +160,12 @@ def get_document_chunks(
         A dictionary mapping each document id to a list of document chunks, each of which is a DocumentChunk object
         with text, metadata, and embedding attributes.
     """
+
+    # Log the number of documents being processed and some details about them
+    print(f"Processing {len(documents)} documents.")
+    for doc in documents:
+        print(f"Document ID: {doc.id}, Metadata: {vars(doc.metadata)}")
+
     # Initialize an empty dictionary of lists of chunks
     chunks: Dict[str, List[DocumentChunk]] = {}
 
