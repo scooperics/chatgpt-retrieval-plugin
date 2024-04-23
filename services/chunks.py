@@ -161,11 +161,6 @@ def get_document_chunks(
         with text, metadata, and embedding attributes.
     """
 
-    # Log the number of documents being processed and some details about them
-    print(f"Processing {len(documents)} documents.")
-    for doc in documents:
-        print(f"Document ID: {doc.id}, Metadata: {vars(doc.metadata)}")
-
     # Initialize an empty dictionary of lists of chunks
     chunks: Dict[str, List[DocumentChunk]] = {}
 
@@ -214,5 +209,7 @@ def get_document_chunks(
     for i, chunk in enumerate(all_chunks):
         # Assign the embedding from the embeddings list to the chunk object
         chunk.embedding = embeddings[i]
+        print(f"Document ID: {chunk.id},\n\nText: {chunk.text},\n\nMetadata: {vars(chunk.metadata)}\n\nEmbeddings: {chunk.embedding}")
+
 
     return chunks
