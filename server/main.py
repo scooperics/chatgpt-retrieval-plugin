@@ -94,7 +94,6 @@ async def upsert(
 ):
     try:
         print("GOT UPSERT REQUEST:")
-        print(request)
         ids = await datastore.upsert(request.documents)
         print("IDs ARE:")
         print(ids)

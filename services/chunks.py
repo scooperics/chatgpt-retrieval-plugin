@@ -112,13 +112,22 @@ def create_document_chunks(
     """
     # Check if the document text is empty or whitespace
     if not doc.text or doc.text.isspace():
+        print(f"Warning: Document text is empty or whitespace for document ID {doc.id if doc.id else 'undefined'}.")
         return [], doc.id or str(uuid.uuid4())
 
     # Generate a document id if not provided
     doc_id = doc.id or str(uuid.uuid4())
+    print(f"Generated document ID: {doc_id} for processing.")
+
+    # Log initial document details
+    if hasattr(doc, 'metadata'):
+        print(f"Metadata present for document ID {doc_id}. Processing with metadata.")
+    else:
+        print(f"No metadata found for document ID {doc_id}. Using default metadata.")
 
     # Split the document text into chunks
     text_chunks = get_text_chunks(doc.text, chunk_token_size)
+    print(f"Document ID {doc_id}: Text split into {len(text_chunks)} chunks.")
 
     metadata = (
         DocumentChunkMetadata(**doc.metadata.__dict__)
@@ -139,11 +148,15 @@ def create_document_chunks(
             text=text_chunk,
             metadata=metadata,
         )
+        # Log creation of each chunk
+        print(f"Created chunk {chunk_id} for document {doc_id}.")
         # Append the chunk object to the list of chunks for this document
         doc_chunks.append(doc_chunk)
 
+    print(f"Total chunks created for document ID {doc_id}: {len(doc_chunks)}")
     # Return the list of chunks and the document id
     return doc_chunks, doc_id
+
 
 
 def get_document_chunks(
@@ -161,6 +174,9 @@ def get_document_chunks(
         with text, metadata, and embedding attributes.
     """
 
+    # Log the number of documents being processed and some details about them
+    print(f"Processing {len(documents)} documents.")
+
     # Initialize an empty dictionary of lists of chunks
     chunks: Dict[str, List[DocumentChunk]] = {}
 
@@ -169,17 +185,29 @@ def get_document_chunks(
 
     # Loop over each document and create chunks
     for doc in documents:
+        # Check document metadata exists and is accessible
+        if not hasattr(doc, 'metadata') or not doc.metadata:
+            print(f"Warning: No metadata found for document ID {doc.id}. Skipping...")
+            continue
 
-        # CUSTOMIZATION: if xbrl, don't chunk - parse the entire table together
-        # There is no point in chunking tabular data as all meaning is lost.
-        if doc.metadata.is_xbrl:
+        print(f"Document ID: {doc.id}, Metadata: {vars(doc.metadata)}")
+
+        # Check if xbrl attribute exists in metadata before accessing
+        if hasattr(doc.metadata, 'is_xbrl') and doc.metadata.is_xbrl:
+            # Assuming create_document_chunks is defined properly
             doc_chunks, doc_id = create_document_chunks(doc, 800)
-
-            # only keep the first chunk for xbrl data
-            doc_chunks = [doc_chunks[0]]
-
+            # only keep the first chunk for xbrl data if there is at least one chunk
+            if doc_chunks:
+                doc_chunks = [doc_chunks[0]]
+            else:
+                print(f"No chunks created for XBRL document ID {doc.id}. Skipping...")
+                continue
         else:
             doc_chunks, doc_id = create_document_chunks(doc, chunk_token_size)
+
+        if not doc_chunks:
+            print(f"Warning: No chunks created for document ID {doc_id}.")
+            continue
 
         # Append the chunks for this document to the list of all chunks
         all_chunks.extend(doc_chunks)
@@ -189,27 +217,21 @@ def get_document_chunks(
 
     # Check if there are no chunks
     if not all_chunks:
+        print("No chunks created for any document. Exiting...")
         return {}
+
+    print(f"Total chunks created: {len(all_chunks)}")
 
     # Get all the embeddings for the document chunks in batches, using get_embeddings
     embeddings: List[List[float]] = []
     for i in range(0, len(all_chunks), EMBEDDINGS_BATCH_SIZE):
         # Get the text of the chunks in the current batch
-        batch_texts = [
-            chunk.text for chunk in all_chunks[i : i + EMBEDDINGS_BATCH_SIZE]
-        ]
-
-        # Get the embeddings for the batch texts
-        batch_embeddings = get_embeddings(batch_texts)
-
-        # Append the batch embeddings to the embeddings list
+        batch_texts = [chunk.text for chunk in all_chunks[i : i + EMBEDDINGS_BATCH_SIZE]]
+        batch_embeddings = get_embeddings(batch_texts)  # Assuming get_embeddings is defined properly
         embeddings.extend(batch_embeddings)
 
     # Update the document chunk objects with the embeddings
     for i, chunk in enumerate(all_chunks):
-        # Assign the embedding from the embeddings list to the chunk object
-        chunk.embedding = embeddings[i]
-        print(f"Document ID: {chunk.id},\n\nText: {chunk.text},\n\nMetadata: {vars(chunk.metadata)}\n\nEmbeddings: {chunk.embedding}")
-
+        chunk.embedding = embeddings[i]  # Assuming embedding is a valid attribute of DocumentChunk
 
     return chunks
