@@ -335,6 +335,9 @@ class PineconeDataStore(DataStore):
         if filter.document_id != None:
             pinecone_filter["document_id"] = filter.document_id
 
+        if filter.enterprise_name != None:
+            pinecone_filter["enterprise_name"] = filter.enterprise_name
+
         return pinecone_filter
 
 

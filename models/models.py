@@ -7,6 +7,7 @@ class Source(str, Enum):
     SEC = "SEC"
     # CSA = "CSA"
     Earnings_Call_Transcripts = "EarningsCallTranscripts"
+    Private_Document = "PrivateDocument"
 
 class FormType(str, Enum):
     earnings_transcript = "earnings_transcript"
@@ -21,6 +22,7 @@ class FormType(str, Enum):
     _20_F = "20-F"
     _40_F = "40-F"
     _6_K = "6-K"
+    private_document = "private_document"
 
 
 class DocumentMetadata(BaseModel):
@@ -36,6 +38,7 @@ class DocumentMetadata(BaseModel):
     fiscal_year: Optional[int] = None
     is_xbrl: Optional[bool] = None
     financial_data: Optional[str] = None
+    enterprise_name: Optional[str] = None
 
 
 class DocumentChunkMetadata(DocumentMetadata):
@@ -83,6 +86,7 @@ class DocumentMetadataFilter(BaseModel):
     user_id: Optional[int] = None
     controller: Optional[str] = None
     model: Optional[str] = None
+    enterprise_name: Optional[str] = None
 
 
 class Query(BaseModel):

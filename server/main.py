@@ -275,306 +275,306 @@ def extract_texts(query_results):
     return texts
 
 
-def get_latest_press_release_filenames(symbol):
-    try:
-        # Connect to your PostgreSQL database
-        conn = db_manager.get_conn()
+# def get_latest_press_release_filenames(symbol):
+#     try:
+#         # Connect to your PostgreSQL database
+#         conn = db_manager.get_conn()
         
-        filenames = []  # Initialize an empty list to store filenames
+#         filenames = []  # Initialize an empty list to store filenames
 
-        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-            # Fetch the most recent published_date for earnings_transcript
-            query = """
-            SELECT published_date FROM source_file_metadata 
-            WHERE symbol = %s AND form_type = 'earnings_transcript'
-            ORDER BY published_date DESC
-            LIMIT 1;
-            """
-            cursor.execute(query, (symbol,))
+#         with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+#             # Fetch the most recent published_date for earnings_transcript
+#             query = """
+#             SELECT published_date FROM source_file_metadata 
+#             WHERE symbol = %s AND form_type = 'earnings_transcript'
+#             ORDER BY published_date DESC
+#             LIMIT 1;
+#             """
+#             cursor.execute(query, (symbol,))
 
-            result = cursor.fetchone()
-            if result:
-                published_date = result["published_date"]
-                start_date = published_date - timedelta(days=2)
-                end_date = published_date + timedelta(days=2)
+#             result = cursor.fetchone()
+#             if result:
+#                 published_date = result["published_date"]
+#                 start_date = published_date - timedelta(days=2)
+#                 end_date = published_date + timedelta(days=2)
 
-                # Fetch all filenames within the date range for specified form_types
-                earnings_press_release_query = """
-                SELECT filename FROM source_file_metadata 
-                WHERE symbol = %s AND form_type IN ('8-K', '6-K') AND published_date BETWEEN %s AND %s AND
-                to_tsvector('english', source_file_metadata.description) @@
-                to_tsquery('english', 'earnings | (financial & results) | (reports & fiscal)  | (results & fiscal) | (reports & quarter) | (results & quarter)')
-                """
-                cursor.execute(earnings_press_release_query, (symbol, start_date, end_date))
+#                 # Fetch all filenames within the date range for specified form_types
+#                 earnings_press_release_query = """
+#                 SELECT filename FROM source_file_metadata 
+#                 WHERE symbol = %s AND form_type IN ('8-K', '6-K') AND published_date BETWEEN %s AND %s AND
+#                 to_tsvector('english', source_file_metadata.description) @@
+#                 to_tsquery('english', 'earnings | (financial & results) | (reports & fiscal)  | (results & fiscal) | (reports & quarter) | (results & quarter)')
+#                 """
+#                 cursor.execute(earnings_press_release_query, (symbol, start_date, end_date))
                 
-                # Process all fetched rows for filenames
-                rows = cursor.fetchall()
-                filenames = [row["filename"] for row in rows]  # Extract filenames
+#                 # Process all fetched rows for filenames
+#                 rows = cursor.fetchall()
+#                 filenames = [row["filename"] for row in rows]  # Extract filenames
 
-        db_manager.put_conn(conn)  # Release the connection back to the pool
-        return filenames
+#         db_manager.put_conn(conn)  # Release the connection back to the pool
+#         return filenames
 
-    except Exception as e:
-        print("Error:", e)
-        return []  # Return an empty list in case of error
+#     except Exception as e:
+#         print("Error:", e)
+#         return []  # Return an empty list in case of error
 
 
 
-class UserRequest(BaseModel):
-    symbol: str
-    from_press_release: Optional[bool] = False
-    xbrl_only: Optional[bool] = True
+# class UserRequest(BaseModel):
+#     symbol: str
+#     from_press_release: Optional[bool] = False
+#     xbrl_only: Optional[bool] = True
 
-async def financial_statement_user_request(request: UserRequest, statement: str, json_structure: str):
+# async def financial_statement_user_request(request: UserRequest, statement: str, json_structure: str):
 
-    symbol = request.symbol
-    from_press_release = request.from_press_release
-    xbrl_only = request.xbrl_only
+#     symbol = request.symbol
+#     from_press_release = request.from_press_release
+#     xbrl_only = request.xbrl_only
 
-    print(f"symbol: {symbol}")
-    print(f"from_press_release: {from_press_release}")
-    print(f"xbrl_only: {xbrl_only}")
+#     print(f"symbol: {symbol}")
+#     print(f"from_press_release: {from_press_release}")
+#     print(f"xbrl_only: {xbrl_only}")
 
-    financial_statement_data = []
+#     financial_statement_data = []
 
-    if from_press_release:
-        filenames = get_latest_press_release_filenames(symbol)
-        print(f"LATEST PRESS RELEASE FILENAME: {filenames}")
-        filter = DocumentMetadataFilter(
-            symbol=symbol,
-            filenames=filenames,
-            xbrl_only=xbrl_only
-        )
-    else:
-        filter = DocumentMetadataFilter(
-            symbol=symbol,
-            form_types=[FormType._10_K, FormType._10_Q],
-            xbrl_only=xbrl_only
-        )
+#     if from_press_release:
+#         filenames = get_latest_press_release_filenames(symbol)
+#         print(f"LATEST PRESS RELEASE FILENAME: {filenames}")
+#         filter = DocumentMetadataFilter(
+#             symbol=symbol,
+#             filenames=filenames,
+#             xbrl_only=xbrl_only
+#         )
+#     else:
+#         filter = DocumentMetadataFilter(
+#             symbol=symbol,
+#             form_types=[FormType._10_K, FormType._10_Q],
+#             xbrl_only=xbrl_only
+#         )
 
-    try:            
-        queries = [
-            ApiQuery(
-                query=statement,
-                filter=filter,
-                sort_order="desc",
-                limit=1,
-                top_k=40,
-            ),
-        ]
+#     try:            
+#         queries = [
+#             ApiQuery(
+#                 query=statement,
+#                 filter=filter,
+#                 sort_order="desc",
+#                 limit=1,
+#                 top_k=40,
+#             ),
+#         ]
 
-        financial_statement_data = await datastore.query(queries)
+#         financial_statement_data = await datastore.query(queries)
 
-        # Prepare system and user messages
-        system_message = f"You are an assistant expert at parsing {statement} data and converting it to a JSON.  ALWAYS GET QUARTERLY DATA if possible and then convert that data to a JSON that looks like this {json_structure}.  You will always convert the ? to the values in millions (for both dollars and shares) from the data provided and you will replace YYYY-MM-DD with the reporting date.  For the frequency put in either annual or quarterly.  Add the correct currency.  Always try for quarterly data if possible.  Never put in comments to this output, only include the JSON data.  ALWAYS infer missing data from other data if it is not explicitly provided."
+#         # Prepare system and user messages
+#         system_message = f"You are an assistant expert at parsing {statement} data and converting it to a JSON.  ALWAYS GET QUARTERLY DATA if possible and then convert that data to a JSON that looks like this {json_structure}.  You will always convert the ? to the values in millions (for both dollars and shares) from the data provided and you will replace YYYY-MM-DD with the reporting date.  For the frequency put in either annual or quarterly.  Add the correct currency.  Always try for quarterly data if possible.  Never put in comments to this output, only include the JSON data.  ALWAYS infer missing data from other data if it is not explicitly provided."
         
-        # Handle None for datastore query
-        if financial_statement_data is None:
-            serialized_financial_statement_data = []
-        else:
-            serialized_financial_statement_data = [result.to_dict() for result in financial_statement_data if result is not None]
+#         # Handle None for datastore query
+#         if financial_statement_data is None:
+#             serialized_financial_statement_data = []
+#         else:
+#             serialized_financial_statement_data = [result.to_dict() for result in financial_statement_data if result is not None]
 
-        json_response_data = json.dumps(serialized_financial_statement_data)
+#         json_response_data = json.dumps(serialized_financial_statement_data)
 
-        user_message = f"Create the {statement} JSON from this context:  {json_response_data}"
+#         user_message = f"Create the {statement} JSON from this context:  {json_response_data}"
 
-        # Connect to your PostgreSQL database
-        conn = db_manager.get_conn()
+#         # Connect to your PostgreSQL database
+#         conn = db_manager.get_conn()
 
-        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+#         with conn.cursor(cursor_factory=RealDictCursor) as cursor:
 
-            # Check for existing rows
-            check_query = """
-            SELECT content FROM fine_tunes 
-            WHERE symbol = %s AND role = 'assistant' AND prompt_name = %s;
-            """
-            cursor.execute(check_query, (symbol, statement,))
-            existing_rows = cursor.fetchall()
+#             # Check for existing rows
+#             check_query = """
+#             SELECT content FROM fine_tunes 
+#             WHERE symbol = %s AND role = 'assistant' AND prompt_name = %s;
+#             """
+#             cursor.execute(check_query, (symbol, statement,))
+#             existing_rows = cursor.fetchall()
 
-            if existing_rows:
+#             if existing_rows:
 
-                # If rows exist, use their content instead of inserting new data
-                existing_content = existing_rows[0]['content']
-                json_response_data = json.dumps(existing_content)
+#                 # If rows exist, use their content instead of inserting new data
+#                 existing_content = existing_rows[0]['content']
+#                 json_response_data = json.dumps(existing_content)
 
-            else:
+#             else:
 
-                # Delete existing rows matching symbol and roles 'system' or 'user'
-                delete_query = """
-                DELETE FROM fine_tunes 
-                WHERE symbol = %s AND prompt_name = %s;
-                """
-                cursor.execute(delete_query, (symbol, statement,))
+#                 # Delete existing rows matching symbol and roles 'system' or 'user'
+#                 delete_query = """
+#                 DELETE FROM fine_tunes 
+#                 WHERE symbol = %s AND prompt_name = %s;
+#                 """
+#                 cursor.execute(delete_query, (symbol, statement,))
 
-                # Find the current largest message_example_id
-                cursor.execute("SELECT MAX(message_example_id) AS max_row FROM fine_tunes WHERE prompt_name = %s;", (statement,))
-                max_id_row = cursor.fetchone()
-                print(f"max_id_row: {max_id_row}")
-                next_message_example_id = max_id_row['max_row'] + 1 if max_id_row['max_row'] is not None else 1
+#                 # Find the current largest message_example_id
+#                 cursor.execute("SELECT MAX(message_example_id) AS max_row FROM fine_tunes WHERE prompt_name = %s;", (statement,))
+#                 max_id_row = cursor.fetchone()
+#                 print(f"max_id_row: {max_id_row}")
+#                 next_message_example_id = max_id_row['max_row'] + 1 if max_id_row['max_row'] is not None else 1
 
-                # Insert rows
-                insert_query = """
-                INSERT INTO fine_tunes (symbol, content, prompt_name, role, training_data, message_example_id, created_at, updated_at) VALUES 
-                (%s, %s, %s, 'system', TRUE, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-                (%s, %s, %s, 'user', TRUE, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
-                """
-                cursor.execute(insert_query, (symbol, system_message, statement, next_message_example_id, symbol, user_message, statement, next_message_example_id))
-                conn.commit()
+#                 # Insert rows
+#                 insert_query = """
+#                 INSERT INTO fine_tunes (symbol, content, prompt_name, role, training_data, message_example_id, created_at, updated_at) VALUES 
+#                 (%s, %s, %s, 'system', TRUE, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
+#                 (%s, %s, %s, 'user', TRUE, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+#                 """
+#                 cursor.execute(insert_query, (symbol, system_message, statement, next_message_example_id, symbol, user_message, statement, next_message_example_id))
+#                 conn.commit()
 
-        db_manager.put_conn(conn)
+#         db_manager.put_conn(conn)
 
-    except Exception as e:
-        print("Error:", e)
+#     except Exception as e:
+#         print("Error:", e)
 
-    return JsonResponse(results=json_response_data)
+#     return JsonResponse(results=json_response_data)
 
-@app.post("/fine-tune-income-statement-user-request")
-async def fine_tune_income_statement_user_request(request: UserRequest):
-    return await financial_statement_user_request(request, "Income Statement", """{"period":"YYYY-MM-DD", "revenue":?, "costOfGoodsSold":?, "grossIncome":?, "researchDevelopment":?, "sgaExpense":?, "otherOperatingExpensesTotal":?, "totalOperatingExpense":?, "ebit":?, "interestIncome":?, "interestExpense":?, "interestIncomeExpense":?, "otherIncomeExpenseNet":?, "pretaxIncome":?, "provisionforIncomeTaxes":?, "netIncome":?, "netIncomeAfterTaxes":?, "dilutedAverageSharesOutstanding":?, "dilutedEPS":?, "nonRecurringItems":?, "gainLossOnDispositionOfAssets":?, "minorityInterest" :?, "equityEarningsAffiliates":? , "fiscal_year":?, "fiscal_quarter":?, "frequency": "annual or quarterly","currency":?}""")
+# @app.post("/fine-tune-income-statement-user-request")
+# async def fine_tune_income_statement_user_request(request: UserRequest):
+#     return await financial_statement_user_request(request, "Income Statement", """{"period":"YYYY-MM-DD", "revenue":?, "costOfGoodsSold":?, "grossIncome":?, "researchDevelopment":?, "sgaExpense":?, "otherOperatingExpensesTotal":?, "totalOperatingExpense":?, "ebit":?, "interestIncome":?, "interestExpense":?, "interestIncomeExpense":?, "otherIncomeExpenseNet":?, "pretaxIncome":?, "provisionforIncomeTaxes":?, "netIncome":?, "netIncomeAfterTaxes":?, "dilutedAverageSharesOutstanding":?, "dilutedEPS":?, "nonRecurringItems":?, "gainLossOnDispositionOfAssets":?, "minorityInterest" :?, "equityEarningsAffiliates":? , "fiscal_year":?, "fiscal_quarter":?, "frequency": "annual or quarterly","currency":?}""")
 
-@app.post("/fine-tune-balance-sheet-user-request")
-async def fine_tune_balance_sheet_user_request(request: UserRequest):
-    return await financial_statement_user_request(request, "Balance Sheet", """{"period":"YYYY-MM-DD", "accountsPayable":?, "accountsReceivables":?, "accruedLiability":?, "accumulatedDepreciation":?, "additionalPaidInCapital":?, "cash":?, "cashEquivalents":?, "cashShortTermInvestments":?, "commonStock":?, "currentAssets":?, "currentLiabilities":?, "currentPortionLongTermDebt":?, "inventory":?, "liabilitiesShareholdersEquity":?, "longTermDebt":?, "longTermInvestments":?, "netDebt":?, "otherCurrentAssets":?, "otherCurrentliabilities":?, "otherEquity":?, "otherLiabilities":?, "otherLongTermAssets":?, "otherReceivables":?, "propertyPlantEquipment":?, "retainedEarnings":?, "sharesOutstanding":?, "shortTermDebt":?, "shortTermInvestments":?, "tangibleBookValueperShare":?, "totalAssets":?, "totalDebt":?, "totalEquity":?, "totalLiabilities":?, "totalReceivables":?, "fiscal_year":?, "fiscal_quarter":?, "frequency": "annual or quarterly","currency":?}""")
+# @app.post("/fine-tune-balance-sheet-user-request")
+# async def fine_tune_balance_sheet_user_request(request: UserRequest):
+#     return await financial_statement_user_request(request, "Balance Sheet", """{"period":"YYYY-MM-DD", "accountsPayable":?, "accountsReceivables":?, "accruedLiability":?, "accumulatedDepreciation":?, "additionalPaidInCapital":?, "cash":?, "cashEquivalents":?, "cashShortTermInvestments":?, "commonStock":?, "currentAssets":?, "currentLiabilities":?, "currentPortionLongTermDebt":?, "inventory":?, "liabilitiesShareholdersEquity":?, "longTermDebt":?, "longTermInvestments":?, "netDebt":?, "otherCurrentAssets":?, "otherCurrentliabilities":?, "otherEquity":?, "otherLiabilities":?, "otherLongTermAssets":?, "otherReceivables":?, "propertyPlantEquipment":?, "retainedEarnings":?, "sharesOutstanding":?, "shortTermDebt":?, "shortTermInvestments":?, "tangibleBookValueperShare":?, "totalAssets":?, "totalDebt":?, "totalEquity":?, "totalLiabilities":?, "totalReceivables":?, "fiscal_year":?, "fiscal_quarter":?, "frequency": "annual or quarterly","currency":?}""")
 
-@app.post("/fine-tune-cash-flow-user-request")
-async def fine_tune_cash_flow_user_request(request: UserRequest):
-    return await financial_statement_user_request(request, "Cash Flow", """{"period":"YYYY-MM-DD", "capex":?, "cashDividendsPaid":?, "cashTaxesPaid":?, "changeinCash":?, "changesinWorkingCapital":?, "depreciationAmortization":?, "fcf":?, "issuanceReductionCapitalStock":?, "issuanceReductionDebtNet":?, "netCashFinancingActivities":?, "netIncomeStartingLine":?, "netInvestingCashFlow":?, "netOperatingCashFlow":?, "otherFundsFinancingItems":?, "otherFundsNonCashItems":?, "otherInvestingCashFlowItemsTotal":?, "stockBasedCompensation":?, "fiscal_year":?, "fiscal_quarter":?, "frequency": "annual or quarterly","currency":?}""")
-
-
-
-class AssistantResponse(BaseModel):
-    symbol: str
-    assistant_message: str
-
-async def financial_statement_assistant_response(request: AssistantResponse, statement: str):
-
-    assistant_message = request.assistant_message
-    symbol = request.symbol
-
-    try:
-        # Connect to your PostgreSQL database
-        conn = db_manager.get_conn()
-
-        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-
-            # Delete existing rows matching symbol and role 'assistant'
-            delete_query = """
-            DELETE FROM fine_tunes 
-            WHERE symbol = %s AND prompt_name = %s AND role = 'assistant';
-            """
-            cursor.execute(delete_query, (symbol, statement,))
-
-            # Find the message_example_id for a matching 'user' role entry
-            select_query = """
-            SELECT message_example_id FROM fine_tunes 
-            WHERE symbol = %s AND prompt_name = %s AND role = 'user'
-            ORDER BY created_at DESC
-            LIMIT 1;
-            """
-            cursor.execute(select_query, (symbol, statement,))
-            match_row = cursor.fetchone()
-
-            # Proceed only if a matching user entry exists
-            if match_row:
-                message_example_id = match_row['message_example_id']
-
-                insert_query = """
-                INSERT INTO fine_tunes (symbol, content, prompt_name, role, training_data, message_example_id, created_at, updated_at) VALUES 
-                (%s, %s, %s, 'assistant', TRUE, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
-                """
-                cursor.execute(insert_query, (symbol, assistant_message, statement, message_example_id))
-                conn.commit()
-            else:
-                print("No matching user entry found for symbol:", symbol)
-
-        db_manager.put_conn(conn)
-
-    except Exception as e:
-        print("Error:", e)
-
-    return {"message": f"{symbol} {statement} inserted successfully"}
-
-@app.post("/fine-tune-income-statement-assistant-response")
-async def fine_tune_income_statement_assistant_response(request: AssistantResponse):
-    return await financial_statement_assistant_response(request, "Income Statement")
-
-@app.post("/fine-tune-balance-sheet-assistant-response")
-async def fine_tune_balance_sheet_assistant_response(request: AssistantResponse):
-    return await financial_statement_assistant_response(request, "Balance Sheet")
-
-@app.post("/fine-tune-cash-flow-assistant-response")
-async def fine_tune_cash_flow_assistant_response(request: AssistantResponse):
-    return await financial_statement_assistant_response(request, "Cash Flow")
+# @app.post("/fine-tune-cash-flow-user-request")
+# async def fine_tune_cash_flow_user_request(request: UserRequest):
+#     return await financial_statement_user_request(request, "Cash Flow", """{"period":"YYYY-MM-DD", "capex":?, "cashDividendsPaid":?, "cashTaxesPaid":?, "changeinCash":?, "changesinWorkingCapital":?, "depreciationAmortization":?, "fcf":?, "issuanceReductionCapitalStock":?, "issuanceReductionDebtNet":?, "netCashFinancingActivities":?, "netIncomeStartingLine":?, "netInvestingCashFlow":?, "netOperatingCashFlow":?, "otherFundsFinancingItems":?, "otherFundsNonCashItems":?, "otherInvestingCashFlowItemsTotal":?, "stockBasedCompensation":?, "fiscal_year":?, "fiscal_quarter":?, "frequency": "annual or quarterly","currency":?}""")
 
 
 
-async def list_financial_statement(statement: str):
-    symbols = []  # Initialize outside try block to ensure scope visibility
-    try:
-        # Connect to your PostgreSQL database
-        conn = db_manager.get_conn()
-        try:
-            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-                cursor.execute("""
-                SELECT symbol FROM fine_tunes 
-                WHERE prompt_name = %s AND role = 'assistant'
-                ORDER BY created_at DESC;
-                """, (statement,))
-                symbols = [row['symbol'] for row in cursor.fetchall()]
-        finally:
-            db_manager.put_conn(conn)
-    except Exception as e:
-        print("Error:", e)
+# class AssistantResponse(BaseModel):
+#     symbol: str
+#     assistant_message: str
 
-    return {"message": f"The following symbols have a {statement} saved: {symbols}"}
+# async def financial_statement_assistant_response(request: AssistantResponse, statement: str):
 
-@app.get("/list-fine-tune-income-statement")
-async def list_fine_tune_income_statement():
-    return await list_financial_statement("Income Statement")
+#     assistant_message = request.assistant_message
+#     symbol = request.symbol
 
-@app.get("/list-fine-tune-balance-sheet")
-async def list_fine_tune_balance_sheet():
-    return await list_financial_statement("Balance Sheet")
+#     try:
+#         # Connect to your PostgreSQL database
+#         conn = db_manager.get_conn()
 
-@app.get("/list-fine-tune-cash-flow")
-async def list_fine_tune_cash_flow():
-    return await list_financial_statement("Cash Flow")
+#         with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+
+#             # Delete existing rows matching symbol and role 'assistant'
+#             delete_query = """
+#             DELETE FROM fine_tunes 
+#             WHERE symbol = %s AND prompt_name = %s AND role = 'assistant';
+#             """
+#             cursor.execute(delete_query, (symbol, statement,))
+
+#             # Find the message_example_id for a matching 'user' role entry
+#             select_query = """
+#             SELECT message_example_id FROM fine_tunes 
+#             WHERE symbol = %s AND prompt_name = %s AND role = 'user'
+#             ORDER BY created_at DESC
+#             LIMIT 1;
+#             """
+#             cursor.execute(select_query, (symbol, statement,))
+#             match_row = cursor.fetchone()
+
+#             # Proceed only if a matching user entry exists
+#             if match_row:
+#                 message_example_id = match_row['message_example_id']
+
+#                 insert_query = """
+#                 INSERT INTO fine_tunes (symbol, content, prompt_name, role, training_data, message_example_id, created_at, updated_at) VALUES 
+#                 (%s, %s, %s, 'assistant', TRUE, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+#                 """
+#                 cursor.execute(insert_query, (symbol, assistant_message, statement, message_example_id))
+#                 conn.commit()
+#             else:
+#                 print("No matching user entry found for symbol:", symbol)
+
+#         db_manager.put_conn(conn)
+
+#     except Exception as e:
+#         print("Error:", e)
+
+#     return {"message": f"{symbol} {statement} inserted successfully"}
+
+# @app.post("/fine-tune-income-statement-assistant-response")
+# async def fine_tune_income_statement_assistant_response(request: AssistantResponse):
+#     return await financial_statement_assistant_response(request, "Income Statement")
+
+# @app.post("/fine-tune-balance-sheet-assistant-response")
+# async def fine_tune_balance_sheet_assistant_response(request: AssistantResponse):
+#     return await financial_statement_assistant_response(request, "Balance Sheet")
+
+# @app.post("/fine-tune-cash-flow-assistant-response")
+# async def fine_tune_cash_flow_assistant_response(request: AssistantResponse):
+#     return await financial_statement_assistant_response(request, "Cash Flow")
 
 
-class DeleteRequest(BaseModel):
-    symbol: str
 
-async def delete_financial_statement(request: DeleteRequest, statement: str):
-    symbol = request.symbol
+# async def list_financial_statement(statement: str):
+#     symbols = []  # Initialize outside try block to ensure scope visibility
+#     try:
+#         # Connect to your PostgreSQL database
+#         conn = db_manager.get_conn()
+#         try:
+#             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+#                 cursor.execute("""
+#                 SELECT symbol FROM fine_tunes 
+#                 WHERE prompt_name = %s AND role = 'assistant'
+#                 ORDER BY created_at DESC;
+#                 """, (statement,))
+#                 symbols = [row['symbol'] for row in cursor.fetchall()]
+#         finally:
+#             db_manager.put_conn(conn)
+#     except Exception as e:
+#         print("Error:", e)
 
-    try:
-        # Connect to your PostgreSQL database
-        conn = db_manager.get_conn()
-        try:
-            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-                cursor.execute("""
-                DELETE FROM fine_tunes 
-                WHERE symbol = %s AND prompt_name = %s;
-                """, (symbol, statement,))
-                conn.commit()
-        finally:
-            db_manager.put_conn(conn)
-    except Exception as e:
-        print("Error:", e)
+#     return {"message": f"The following symbols have a {statement} saved: {symbols}"}
 
-    return {"message": f"{symbol} {statement} deleted successfully"}
+# @app.get("/list-fine-tune-income-statement")
+# async def list_fine_tune_income_statement():
+#     return await list_financial_statement("Income Statement")
 
-@app.post("/delete-fine-tune-income-statement")
-async def delete_fine_tune_income_statement(request: DeleteRequest):
-    return await delete_financial_statement(request, "Income Statement")
+# @app.get("/list-fine-tune-balance-sheet")
+# async def list_fine_tune_balance_sheet():
+#     return await list_financial_statement("Balance Sheet")
 
-@app.post("/delete-fine-tune-balance-sheet")
-async def delete_fine_tune_balance_sheet(request: DeleteRequest):
-    return await delete_financial_statement(request, "Balance Sheet")
+# @app.get("/list-fine-tune-cash-flow")
+# async def list_fine_tune_cash_flow():
+#     return await list_financial_statement("Cash Flow")
 
-@app.post("/delete-fine-tune-cash-flow")
-async def delete_fine_tune_cash_flow(request: DeleteRequest):
-    return await delete_financial_statement(request, "Cash Flow")
+
+# class DeleteRequest(BaseModel):
+#     symbol: str
+
+# async def delete_financial_statement(request: DeleteRequest, statement: str):
+#     symbol = request.symbol
+
+#     try:
+#         # Connect to your PostgreSQL database
+#         conn = db_manager.get_conn()
+#         try:
+#             with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+#                 cursor.execute("""
+#                 DELETE FROM fine_tunes 
+#                 WHERE symbol = %s AND prompt_name = %s;
+#                 """, (symbol, statement,))
+#                 conn.commit()
+#         finally:
+#             db_manager.put_conn(conn)
+#     except Exception as e:
+#         print("Error:", e)
+
+#     return {"message": f"{symbol} {statement} deleted successfully"}
+
+# @app.post("/delete-fine-tune-income-statement")
+# async def delete_fine_tune_income_statement(request: DeleteRequest):
+#     return await delete_financial_statement(request, "Income Statement")
+
+# @app.post("/delete-fine-tune-balance-sheet")
+# async def delete_fine_tune_balance_sheet(request: DeleteRequest):
+#     return await delete_financial_statement(request, "Balance Sheet")
+
+# @app.post("/delete-fine-tune-cash-flow")
+# async def delete_fine_tune_cash_flow(request: DeleteRequest):
+#     return await delete_financial_statement(request, "Cash Flow")
 
 
 
