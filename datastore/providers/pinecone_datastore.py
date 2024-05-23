@@ -203,8 +203,10 @@ class PineconeDataStore(DataStore):
                 print(metadata_without_text)
                 # for some stupid reason, if the cik is only a 4 digit number with 000000s on the front, it thinks it is a date
                 # cast to string first or it will fail.
-                if metadata_without_text["cik"] is not None and isinstance(metadata_without_text["cik"], datetime.date):
-                    formatted_cik = metadata_without_text["cik"].strftime('%Y')
+                cik_value = metadata_without_text.get("cik")
+                if cik_value is not None and isinstance(cik_value, datetime.date):
+                    print("FORMATTING CIK")
+                    formatted_cik = cik_value.strftime('%Y')
                     zero_padded_cik = formatted_cik.zfill(10)
                     metadata_without_text["cik"] = zero_padded_cik
                 print(metadata_without_text)
