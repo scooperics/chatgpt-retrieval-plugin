@@ -896,10 +896,11 @@ async def filename_main(
         conn = db_manager.get_conn()
         with conn.cursor(cursor_factory=RealDictCursor) as cursor:
             query = """
-                SELECT filename, description, form_type, fiscal_year, fiscal_quarter, 
+                SELECT filename, source_file_metadata.description, form_type, fiscal_year, fiscal_quarter, 
                 TO_CHAR(published_date, 'YYYY-MM-DD') AS published_date_str
                 FROM source_file_metadata
-                WHERE form_type != 'private_document' AND in_vector_db = true AND symbol = ANY(%s)
+                INNER JOIN stocks ON stocks.cik = source_file_metadata.cik
+                WHERE form_type != 'private_document' AND in_vector_db = true AND stocks.symbol = ANY(%s)
                 ORDER BY published_date desc
             """
             cursor.execute(query, (symbols,))
