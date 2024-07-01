@@ -134,7 +134,6 @@ class PineconeDataStore(DataStore):
                 if (query.filter.sort_order is not None) and (query.sort_order is None):
                     query.sort_order = query.filter.sort_order
 
-
             # Convert the metadata filter object to a dict with pinecone filter expressions
             pinecone_filter = self._get_pinecone_filter(query.filter, query.sort_order, query.limit)
             print(f"Pinecone Filter: {pinecone_filter}")
@@ -154,7 +153,6 @@ class PineconeDataStore(DataStore):
                     
                     # Adjust the is_xbrl filter setting if it is set to True
                     if 'is_xbrl' in pinecone_filter and pinecone_filter['is_xbrl']:
-
                         additional_chunks = query.top_k - len(query_response.matches)
                         print(f"Initial query didn't return enough chunks - need to add {additional_chunks} with xbrl = false.")
 
@@ -172,7 +170,6 @@ class PineconeDataStore(DataStore):
 
                         # Combine results from the initial and supplementary queries
                         query_response.matches.extend(additional_query_response.matches)
-
 
             except Exception as e:
                 print("QUERY ERROR")
@@ -200,7 +197,7 @@ class PineconeDataStore(DataStore):
                 ):
                     metadata_without_text["source"] = None
 
-                print(metadata_without_text)
+                # print(metadata_without_text)
                 # for some stupid reason, if the cik is only a 4 digit number with 000000s on the front, it thinks it is a date
                 # cast to string first or it will fail.
                 cik_value = metadata_without_text.get("cik")
@@ -209,18 +206,19 @@ class PineconeDataStore(DataStore):
                     formatted_cik = cik_value.strftime('%Y')
                     zero_padded_cik = formatted_cik.zfill(10)
                     metadata_without_text["cik"] = zero_padded_cik
-                print(metadata_without_text)
 
+                print(f"id: {result.id}")
+                print(f"score: {score}")
+                print(f"text: {str(metadata['text']) if metadata and 'text' in metadata else None}")
+                print(f"metadata_without_text: {metadata_without_text}")
 
                 # Create a document chunk with score object with the result data
                 result = DocumentChunkWithScore(
                     id=result.id,
                     score=score,
-                    text=metadata["text"] if metadata and "text" in metadata else None,
+                    text=str(metadata["text"]) if metadata and "text" in metadata else None,
                     metadata=metadata_without_text,
                 )
-
-                print(result)
 
                 query_results.append(result)
                 id_results.append(result.id)
