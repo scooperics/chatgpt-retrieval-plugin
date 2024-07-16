@@ -5,6 +5,7 @@ from enum import Enum
 
 class Source(str, Enum):
     SEC = "SEC"
+    SEDAR = "SEDAR"
     # CSA = "CSA"
     Earnings_Call_Transcripts = "EarningsCallTranscripts"
     Private_Document = "PrivateDocument"
@@ -23,7 +24,19 @@ class FormType(str, Enum):
     _40_F = "40-F"
     _6_K = "6-K"
     private_document = "private_document"
-
+    AR = "AR"
+    IR = "IR"
+    AFS = "AFS"
+    IFS = "IFS"
+    MD_A = "MD&A"
+    AIF = "AIF"
+    MCR = "MCR"
+    MCP = "MCP"
+    PROS = "PROS"
+    PR = "PR"
+    EWR = "EWR"
+    NI = "NI"
+    RF = "RF"
 
 class DocumentMetadata(BaseModel):
     source: Optional[Source] = None
