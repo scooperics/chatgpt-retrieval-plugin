@@ -51,6 +51,7 @@ class DocumentMetadata(BaseModel):
     fiscal_year: Optional[int] = None
     is_xbrl: Optional[bool] = None
     financial_data: Optional[str] = None
+    page: Optional[int] = None
     enterprise_name: Optional[str] = None
 
 

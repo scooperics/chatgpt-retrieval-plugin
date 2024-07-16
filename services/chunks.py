@@ -202,6 +202,17 @@ def get_document_chunks(
             else:
                 print(f"No chunks created for XBRL document ID {doc.id}. Skipping...")
                 continue
+
+        # Check if there is a page number and if so, don't split the page
+        if hasattr(doc.metadata, 'page') and doc.metadata.page is not None:
+            # Assuming create_document_chunks is defined properly
+            doc_chunks, doc_id = create_document_chunks(doc, 2000)
+            # only keep the first chunk for page data if there is at least one chunk
+            if doc_chunks:
+                doc_chunks = [doc_chunks[0]]
+            else:
+                print(f"No chunks created for Page {doc.metadata.page} document ID {doc.id}. Skipping...")
+                continue
         else:
             doc_chunks, doc_id = create_document_chunks(doc, chunk_token_size)
 
