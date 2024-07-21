@@ -610,7 +610,7 @@ async def analyze_main(
                 query="What are the top business performance risks the company is facing based on analyst questions and management commentary?",
                 filter=DocumentMetadataFilter(
                     symbol=symbol,
-                    form_types=[FormType._20_F, FormType._10_K, FormType._10_Q, FormType.earnings_transcript]
+                    form_types=[FormType._20_F, FormType._10_K, FormType._10_Q, FormType.earnings_transcript, FormType.AR, FormType.MD_A]
                 ),
                 sort_order="desc",
                 limit=2,
@@ -642,7 +642,7 @@ async def analyze_main(
                 query="What are the top opportunities the company has based on analyst questions and management commentary?",
                 filter=DocumentMetadataFilter(
                     symbol=symbol,
-                    form_types=[FormType._20_F, FormType._10_K, FormType._10_Q, FormType.earnings_transcript]
+                    form_types=[FormType._20_F, FormType._10_K, FormType._10_Q, FormType.earnings_transcript, FormType.AR, FormType.MD_A]
                 ),
                 sort_order="desc",
                 limit=2,
@@ -673,7 +673,7 @@ async def analyze_main(
                 query="Management Guidance on Future Performance",
                 filter=DocumentMetadataFilter(
                     symbol=symbol,
-                    form_types=[FormType._20_F, FormType._10_K, FormType._10_Q, FormType.earnings_transcript]
+                    form_types=[FormType._20_F, FormType._10_K, FormType._10_Q, FormType.earnings_transcript, FormType.AR, FormType.MD_A]
                 ),
                 sort_order="desc",
                 limit=2,
