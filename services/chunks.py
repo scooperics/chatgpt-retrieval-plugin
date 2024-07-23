@@ -204,7 +204,7 @@ def get_document_chunks(
                 continue
 
         # Check if there is a page number and if so, don't split the page
-        if hasattr(doc.metadata, 'page') and doc.metadata.page is not None:
+        elif hasattr(doc.metadata, 'page') and doc.metadata.page is not None:
             # Assuming create_document_chunks is defined properly
             doc_chunks, doc_id = create_document_chunks(doc, 800)
         else:
