@@ -192,6 +192,7 @@ def get_document_chunks(
 
         print(f"Document ID: {doc.id}, Metadata: {vars(doc.metadata)}")
 
+
         # Check if xbrl attribute exists in metadata before accessing
         if hasattr(doc.metadata, 'is_xbrl') and doc.metadata.is_xbrl:
             # Assuming create_document_chunks is defined properly
@@ -202,11 +203,6 @@ def get_document_chunks(
             else:
                 print(f"No chunks created for XBRL document ID {doc.id}. Skipping...")
                 continue
-
-        # Check if there is a page number and if so, don't split the page
-        elif hasattr(doc.metadata, 'page') and doc.metadata.page is not None:
-            # Assuming create_document_chunks is defined properly
-            doc_chunks, doc_id = create_document_chunks(doc, 800)
         else:
             doc_chunks, doc_id = create_document_chunks(doc, chunk_token_size)
 
