@@ -900,7 +900,12 @@ async def filename_main(
                 TO_CHAR(published_date, 'YYYY-MM-DD') AS published_date_str
                 FROM source_file_metadata
                 INNER JOIN stocks ON stocks.cik = source_file_metadata.cik
-                WHERE form_type != 'private_document' AND in_vector_db = true AND stocks.symbol = ANY(%s)
+                WHERE
+                    form_type != 'private_document'
+                    AND in_vector_db = TRUE
+                    AND stocks.symbol = ANY(%s)
+                    AND published_date >= CURRENT_DATE - INTERVAL '1 years'       -- only the last 1 year
+                    AND source_file_metadata.url NOT ILIKE '%%aitickerchat.com%%' -- exclude specific domain
                 ORDER BY published_date desc
             """
             cursor.execute(query, (symbols,))
